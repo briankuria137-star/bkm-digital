@@ -10,6 +10,7 @@ type Project = {
   type: string;
   status: string;
   created_at: string;
+  catalogue_id?: string | null;
 };
 
 export default function ProjectsPage() {
@@ -20,13 +21,20 @@ export default function ProjectsPage() {
     async function loadProjects() {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, name, type, status, created_at")
+        .select("id, name, type, status, created_at, catalogues(id)")
         .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Projects error:", error);
       } else {
-        setProjects(data || []);
+        setProjects((data || []).map((project) => {
+          const related = project.catalogues as unknown;
+          const catalogue = Array.isArray(related) ? related[0] as { id?: string } | undefined : related as { id?: string } | null;
+          return {
+            ...project,
+            catalogue_id: catalogue?.id ?? null,
+          };
+        }));
       }
 
       setLoading(false);
@@ -155,12 +163,14 @@ export default function ProjectsPage() {
 
                   <Link
                     href={
-                      project.type.toLowerCase() === "website"
+                      project.type.toLowerCase() === "catalogue" && project.catalogue_id
+                        ? `/catalogue/${project.catalogue_id}`
+                        : project.type.toLowerCase() === "website"
                         ? "/website"
                         : project.type.toLowerCase() === "shop" ||
-                            project.type.toLowerCase() === "online shop"
-                          ? "/shop"
-                          : "/catalogue"
+                          project.type.toLowerCase() === "online shop"
+                        ? "/shop"
+                        : "/catalogue"
                     }
                     className="project-arrow"
                     aria-label={`Open ${project.name}`}
