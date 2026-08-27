@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 
 type Catalogue = {
-  id: number;
+  id: string;
   name: string;
   business_name: string;
 };
