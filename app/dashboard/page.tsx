@@ -171,7 +171,7 @@ export default function Dashboard() {
                   </div>
 
                   <Link
-                    href={`/c/${catalogue.id}`}
+                    href={`/catalogue/${catalogue.id}`}
                     className="project-arrow"
                     aria-label={`View ${catalogue.name}`}
                   >
