@@ -17,7 +17,7 @@ export default function EditCatalogue({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const [catalogueId, setCatalogueId] = useState<number | null>(null);
+  const [catalogueId, setCatalogueId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [business, setBusiness] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
@@ -29,16 +29,15 @@ export default function EditCatalogue({
     async function loadCatalogue() {
       try {
         const { id } = await params;
-        const numericId = Number(id);
-
-        if (!Number.isInteger(numericId)) {
-          throw new Error("Invalid catalogue ID.");
-        }
+        const catalogueUuid = id;
+      if (!catalogueUuid) {
+        throw new Error("Invalid catalogue ID.");
+      }
 
         const { data: catalogue, error: catalogueError } = await supabase
           .from("catalogues")
           .select("id, name, business_name")
-          .eq("id", numericId)
+          .eq("id", catalogueUuid)
           .single();
 
         if (catalogueError) {
@@ -48,7 +47,7 @@ export default function EditCatalogue({
         const { data: productData, error: productError } = await supabase
           .from("catalogue_products")
           .select("id, name, price, description, image")
-          .eq("catalogue_id", numericId)
+          .eq("catalogue_id", catalogueUuid)
           .order("id", { ascending: true });
 
         if (productError) {
@@ -75,10 +74,9 @@ export default function EditCatalogue({
   }, [params]);
 
   function addProduct() {
-    const nextId =
-      products.length > 0
-        ? Math.max(...products.map((product) => product.id)) + 1
-        : 1;
+    const nextId = products.length > 0
+      ? Math.max(...products.map((product) => product.id)) + 1
+      : 1;
 
     setProducts([
       ...products,
