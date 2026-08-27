@@ -141,21 +141,36 @@ export default function CatalogueBuilder() {
       let currentCatalogueId = catalogueId;
 
       if (!currentCatalogueId) {
-        const { data, error } = await supabase
+        const { data: project, error: projectError } = await supabase
+          .from("projects")
+          .insert({
+            name: name.trim(),
+            type: "catalogue",
+            status: "draft",
+          })
+          .select("id")
+          .single();
+
+        if (projectError) {
+          throw projectError;
+        }
+
+        const { data: catalogue, error: catalogueError } = await supabase
           .from("catalogues")
           .insert({
+            project_id: project.id,
             name: name.trim(),
             business_name: business.trim(),
           })
           .select("id")
           .single();
 
-        if (error) {
-          throw error;
+        if (catalogueError) {
+          throw catalogueError;
         }
 
-        currentCatalogueId = data.id;
-        setCatalogueId(data.id);
+        currentCatalogueId = catalogue.id;
+        setCatalogueId(catalogue.id);
       } else {
         const { error } = await supabase
           .from("catalogues")
