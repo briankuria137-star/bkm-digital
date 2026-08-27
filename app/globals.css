@@ -1149,3 +1149,67 @@ footer {
   display: block;
   object-fit: cover;
 }
+
+.catalogue-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: 28px auto;
+  padding: 0 20px;
+}
+
+.catalogue-share-actions button {
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.catalogue-share-actions button:hover {
+  transform: translateY(-1px);
+  opacity: 0.8;
+}
+
+@media (max-width: 480px) {
+  .catalogue-share-actions {
+    flex-direction: column;
+  }
+
+  .catalogue-share-actions button {
+    width: 100%;
+  }
+}
+
+.product-order-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #111;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.product-order-button:hover {
+  transform: translateY(-1px);
+  opacity: 0.85;
+}
+
+@media (max-width: 480px) {
+  .product-order-button {
+    min-height: 46px;
+  }
+}
+

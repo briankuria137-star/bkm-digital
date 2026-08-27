@@ -17,6 +17,11 @@ type Product = {
   image: string | null;
 };
 
+function getCatalogueUrl() {
+  if (typeof window === "undefined") return "";
+  return window.location.href;
+}
+
 export default function PublicCatalogue({
   params,
 }: {
@@ -26,6 +31,54 @@ export default function PublicCatalogue({
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  async function copyCatalogueLink() {
+    const url = getCatalogueUrl();
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Copy link error:", err);
+    }
+  }
+
+  function orderProduct(product: Product) {
+    if (!catalogue) return;
+    const text = `Hello ${catalogue.business_name}, I would like to order: ${product.name} - ${product.price}. From ${catalogue.name}.`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  }
+
+  function shareWhatsApp() {
+    const url = getCatalogueUrl();
+    if (!url || !catalogue) return;
+    const text = `Check out ${catalogue.name} from ${catalogue.business_name}: ${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  }
+
+  async function shareCatalogue() {
+    const url = getCatalogueUrl();
+    if (!url || !catalogue) return;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: catalogue.name,
+          text: `Check out ${catalogue.name} from ${catalogue.business_name}.`,
+          url,
+        });
+      } catch (err) {
+        if (err instanceof Error && err.name !== "AbortError") {
+          console.error("Share error:", err);
+        }
+      }
+    } else {
+      await copyCatalogueLink();
+    }
+  }
+
 
   useEffect(() => {
     async function loadCatalogue() {
@@ -130,11 +183,31 @@ export default function PublicCatalogue({
                 <h2>{product.name}</h2>
                 <strong>{product.price}</strong>
                 <p>{product.description}</p>
+                  <button
+                    type="button"
+                    className="product-order-button"
+                    onClick={() => orderProduct(product)}
+                  >
+                    Order on WhatsApp →
+                  </button>
+
               </div>
             </article>
           ))
         )}
       </section>
+
+          <div className="catalogue-share-actions">
+            <button type="button" onClick={copyCatalogueLink}>
+              {copied ? "✓ Link copied" : "Copy link"}
+            </button>
+            <button type="button" onClick={shareWhatsApp}>
+              WhatsApp
+            </button>
+            <button type="button" onClick={shareCatalogue}>
+              Share
+            </button>
+          </div>
 
       <footer className="public-catalogue-footer">
         <span>BUILT WITH</span>
