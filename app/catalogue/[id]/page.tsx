@@ -25,6 +25,7 @@ export default function EditCatalogue({
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingProductId, setUploadingProductId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -118,41 +119,57 @@ export default function EditCatalogue({
 
     if (!file.type.startsWith("image/")) {
       alert("Please select an image file.");
+      event.target.value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
       alert("Image must be smaller than 5MB.");
+      event.target.value = "";
       return;
     }
 
-    const extension =
-      file.name.split(".").pop()?.toLowerCase() || "jpg";
+    setUploadingProductId(id);
 
-    const fileName = `${id}-${crypto.randomUUID()}.${extension}`;
+    try {
+      const extension =
+        file.name.split(".").pop()?.toLowerCase() || "jpg";
 
-    const { error } = await supabase.storage
-      .from("catalogue-images")
-      .upload(fileName, file, {
-        cacheControl: "3600",
-        upsert: true,
-        contentType: file.type,
-      });
+      const fileName = String(id) + "-" + crypto.randomUUID() + "." + extension;
 
-    if (error) {
-      console.error("Image upload error:", error);
-      alert(`Upload failed: ${error.message}`);
-      return;
+      const { error } = await supabase.storage
+        .from("catalogue-images")
+        .upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: true,
+          contentType: file.type,
+        });
+
+      if (error) {
+        console.error("Image upload error:", error);
+        alert("Upload failed: " + error.message);
+        return;
+      }
+
+      const { data } = supabase.storage
+        .from("catalogue-images")
+        .getPublicUrl(fileName);
+
+      updateProduct(id, "image", data.publicUrl);
+    } catch (error) {
+      console.error("Unexpected image upload error:", error);
+      alert(
+        error instanceof Error
+          ? "Upload failed: " + error.message
+          : "Upload failed. Please try again.",
+      );
+    } finally {
+      setUploadingProductId(null);
+      event.target.value = "";
     }
-
-    const { data } = supabase.storage
-      .from("catalogue-images")
-      .getPublicUrl(fileName);
-
-    updateProduct(id, "image", data.publicUrl);
   }
 
-  async function saveChanges() {
+  async function saveChanges()  {
     if (!catalogueId) {
       setMessage("Catalogue is not ready.");
       return;
@@ -383,24 +400,25 @@ export default function EditCatalogue({
                       </div>
                     ) : (
                       <label className="upload-box">
-                        <span>+</span>
-                        <strong>
-                          Upload product image
-                        </strong>
-                        <small>
-                          JPG, PNG or WEBP · Max 5MB
-                        </small>
-
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(event) =>
-                            handleImageUpload(
-                              product.id,
-                              event,
-                            )
-                          }
-                        />
+                          <span>{uploadingProductId === product.id ? "…" : "+"}</span>
+                          <strong>
+                            {uploadingProductId === product.id
+                              ? "Uploading…"
+                              : "Upload product image"}
+                          </strong>
+                          <small>
+                            {uploadingProductId === product.id
+                              ? "Please wait while the image uploads."
+                              : "JPG, PNG or WEBP · Max 5MB"}
+                          </small>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            disabled={uploadingProductId === product.id}
+                            onChange={(event) =>
+                              handleImageUpload(product.id, event)
+                            }
+                          />
                       </label>
                     )}
                   </div>
