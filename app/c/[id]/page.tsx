@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 
 type Catalogue = {
-  id: number;
+  id: string;
   name: string;
   business_name: string;
 };
 
 type Product = {
-  id: number;
+  id: string;
   name: string;
   price: string;
   description: string;
@@ -31,11 +31,11 @@ export default function PublicCatalogue({
     async function loadCatalogue() {
       try {
         const { id } = await params;
-        const catalogueId = Number(id);
+        const catalogueId = id;
 
-        if (!Number.isInteger(catalogueId)) {
-          throw new Error("Invalid catalogue ID.");
-        }
+      if (!catalogueId) {
+        throw new Error("Invalid catalogue ID.");
+      }
 
         const { data: catalogueData, error: catalogueError } =
           await supabase
