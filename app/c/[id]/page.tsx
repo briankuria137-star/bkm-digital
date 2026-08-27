@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 
@@ -7,6 +9,14 @@ type Catalogue = {
   id: string;
   name: string;
   business_name: string;
+  whatsapp: string | null;
+  phone: string | null;
+  instagram: string | null;
+  facebook: string | null;
+  tiktok: string | null;
+  email: string | null;
+  website: string | null;
+  location: string | null;
 };
 
 type Product = {
@@ -48,7 +58,13 @@ export default function PublicCatalogue({
   function orderProduct(product: Product) {
     if (!catalogue) return;
     const text = `Hello ${catalogue.business_name}, I would like to order: ${product.name} - ${product.price}. From ${catalogue.name}.`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    if (!catalogue.whatsapp) {
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+      return;
+    }
+    let phone = catalogue.whatsapp.replace(/\D/g, "");
+    if (phone.startsWith("0")) phone = "254" + phone.slice(1);
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank");
   }
 
   function shareWhatsApp() {
@@ -93,7 +109,7 @@ export default function PublicCatalogue({
         const { data: catalogueData, error: catalogueError } =
           await supabase
             .from("catalogues")
-            .select("id, name, business_name")
+            .select("id, name, business_name, whatsapp, phone, instagram, facebook, tiktok, email, website, location")
             .eq("id", catalogueId)
             .single();
 
@@ -168,11 +184,15 @@ export default function PublicCatalogue({
           products.map((product) => (
             <article className="public-product-card" key={product.id}>
               {product.image ? (
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="public-product-image"
-                />
+                <div className="public-product-image-wrapper">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    className="public-product-image"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                </div>
               ) : (
                 <div className="public-product-placeholder">
                   PRODUCT

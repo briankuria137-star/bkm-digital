@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import { ChangeEvent, useState } from "react";
 import Link from "next/link";
@@ -33,6 +34,14 @@ export default function CatalogueBuilder() {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [name, setName] = useState("My New Catalogue");
   const [business, setBusiness] = useState("Your Business");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [phone, setPhone] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [facebook, setFacebook] = useState("");
+  const [tiktok, setTiktok] = useState("");
+  const [website, setWebsite] = useState("");
+  const [location, setLocation] = useState("");
+
   const [catalogueId, setCatalogueId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -153,6 +162,13 @@ export default function CatalogueBuilder() {
             project_id: project.id,
             name: name.trim(),
             business_name: business.trim(),
+            whatsapp: whatsapp.trim() || null,
+            phone: phone.trim() || null,
+            instagram: instagram.trim() || null,
+            facebook: facebook.trim() || null,
+            tiktok: tiktok.trim() || null,
+            website: website.trim() || null,
+            location: location.trim() || null,
           })
           .select("id")
           .single();
@@ -170,8 +186,15 @@ export default function CatalogueBuilder() {
           .update({
             name: name.trim(),
             business_name: business.trim(),
-          })
-          .eq("id", currentCatalogueId);
+          whatsapp: whatsapp.trim() || null,
+          phone: phone.trim() || null,
+          instagram: instagram.trim() || null,
+          facebook: facebook.trim() || null,
+          tiktok: tiktok.trim() || null,
+          website: website.trim() || null,
+          location: location.trim() || null,
+        })
+        .eq("id", currentCatalogueId);
 
         if (error) throw error;
 
@@ -256,31 +279,63 @@ export default function CatalogueBuilder() {
         )}
 
         <section id="details" className="builder-section-panel">
-          <p className="panel-number">01 / DETAILS</p>
-          <h2>Start with the basics.</h2>
+  <p className="panel-number">01 / DETAILS</p>
+  <h2>Start with the basics.</h2>
 
-          <div className="details-grid">
-            <label>
-              Catalogue name
-              <input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="e.g. Yobby Kicks"
-              />
-            </label>
+  <div className="details-grid">
+    <label>
+      Catalogue name
+      <input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Yobby Kicks" />
+    </label>
 
-            <label>
-              Business name
-              <input
-                value={business}
-                onChange={(event) => setBusiness(event.target.value)}
-                placeholder="e.g. BKM DIGITAL"
-              />
-            </label>
-          </div>
-        </section>
+    <label>
+      Business name
+      <input value={business} onChange={(event) => setBusiness(event.target.value)} placeholder="e.g. BKM DIGITAL" />
+    </label>
+  </div>
 
-        <section id="products" className="builder-section-panel">
+  <div className="contact-fields">
+    <p className="panel-number">CONTACT & SOCIAL</p>
+    <div className="details-grid">
+      <label>
+        WhatsApp
+        <input value={whatsapp} onChange={(event) => setWhatsapp(event.target.value)} placeholder="+254 7XX XXX XXX" />
+      </label>
+
+      <label>
+        Phone
+        <input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+254 7XX XXX XXX" />
+      </label>
+
+      <label>
+        Instagram
+        <input value={instagram} onChange={(event) => setInstagram(event.target.value)} placeholder="" />
+      </label>
+
+      <label>
+        Facebook
+        <input value={facebook} onChange={(event) => setFacebook(event.target.value)} placeholder="facebook.com/yourbusiness" />
+      </label>
+
+      <label>
+        TikTok
+        <input value={tiktok} onChange={(event) => setTiktok(event.target.value)} placeholder="" />
+      </label>
+
+      <label>
+        Website
+        <input value={website} onChange={(event) => setWebsite(event.target.value)} placeholder="https://yourwebsite.com" />
+      </label>
+
+      <label>
+        Location
+        <input value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Mwihoko, Ruiru" />
+      </label>
+    </div>
+  </div>
+</section>
+
+<section id="products" className="builder-section-panel">
           <div className="panel-top">
             <div>
               <p className="panel-number">02 / PRODUCTS</p>
@@ -307,10 +362,13 @@ export default function CatalogueBuilder() {
                   <div className="image-upload-area">
                     {product.image ? (
                       <div className="uploaded-image">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                        />
+                        <Image
+                    src={product.image}
+                    alt={product.name}
+                    width={800}
+                    height={800}
+                    className="uploaded-product-image"
+                  />
 
                         <button
                           type="button"
@@ -427,11 +485,13 @@ export default function CatalogueBuilder() {
                   key={product.id}
                 >
                   {product.image ? (
-                    <img
-                      className="preview-product-image"
-                      src={product.image}
-                      alt={product.name}
-                    />
+                    <Image
+                        className="preview-product-image"
+                        src={product.image}
+                        alt={product.name}
+                        width={800}
+                        height={800}
+                      />
                   ) : (
                     <div className="preview-image">
                       PRODUCT

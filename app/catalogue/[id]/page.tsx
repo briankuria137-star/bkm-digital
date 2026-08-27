@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import { ChangeEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../../lib/supabase";
@@ -358,9 +360,12 @@ export default function EditCatalogue({
                   <div className="image-upload-area">
                     {product.image ? (
                       <div className="uploaded-image">
-                        <img
+                        <Image
                           src={product.image}
                           alt={product.name}
+                          width={800}
+                          height={800}
+                          className="uploaded-product-image"
                         />
 
                         <button
@@ -471,11 +476,13 @@ export default function EditCatalogue({
                   key={product.id}
                 >
                   {product.image ? (
-                    <img
-                      className="preview-product-image"
-                      src={product.image}
-                      alt={product.name}
-                    />
+                    <Image
+                            className="preview-product-image"
+                            src={product.image}
+                            alt={product.name}
+                            width={800}
+                            height={800}
+                          />
                   ) : (
                     <div className="preview-image">
                       PRODUCT

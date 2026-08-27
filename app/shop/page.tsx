@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -403,10 +404,13 @@ export default function ShopBuilder() {
                   key={product.id}
                 >
                   {product.image ? (
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                    />
+                    <Image
+                    src={product.image}
+                    alt={product.name}
+                    width={800}
+                    height={800}
+                    className="preview-product-image"
+                  />
                   ) : (
                     <div className="preview-image">
                       PRODUCT
