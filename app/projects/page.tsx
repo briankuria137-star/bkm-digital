@@ -4,27 +4,29 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 
-type Catalogue = {
+type Project = {
   id: string;
   name: string;
-  business_name: string;
+  type: string;
+  status: string;
+  created_at: string;
 };
 
 export default function ProjectsPage() {
-  const [catalogues, setCatalogues] = useState<Catalogue[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadProjects() {
       const { data, error } = await supabase
-        .from("catalogues")
-        .select("id, name, business_name")
-        .order("id", { ascending: false });
+        .from("projects")
+        .select("id, name, type, status, created_at")
+        .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Projects error:", error);
       } else {
-        setCatalogues(data || []);
+        setProjects(data || []);
       }
 
       setLoading(false);
@@ -56,15 +58,15 @@ export default function ProjectsPage() {
             Catalogues
           </Link>
 
-          <a href="/dashboard#new-project">
+          <Link href="/dashboard#new-project">
             <span>04</span>
             Templates
-          </a>
+          </Link>
 
-          <a href="/dashboard#new-project">
+          <Link href="/dashboard#new-project">
             <span>05</span>
             Settings
-          </a>
+          </Link>
         </nav>
 
         <div className="sidebar-bottom">
@@ -94,8 +96,8 @@ export default function ProjectsPage() {
             <p className="dashboard-eyebrow">DIGITAL WORKSPACE</p>
             <h2>Everything you&apos;re building.</h2>
             <p>
-              Manage your catalogues and future digital products from one
-              workspace.
+              Manage catalogues, websites, online shops and software from one
+              professional workspace.
             </p>
           </div>
         </section>
@@ -107,7 +109,7 @@ export default function ProjectsPage() {
               <h2>Projects</h2>
             </div>
 
-            <span>{catalogues.length} project(s)</span>
+            <span>{projects.length} project(s)</span>
           </div>
 
           <div className="project-list">
@@ -118,13 +120,13 @@ export default function ProjectsPage() {
                   <p>Please wait.</p>
                 </div>
               </article>
-            ) : catalogues.length === 0 ? (
+            ) : projects.length === 0 ? (
               <article className="project-row">
                 <div className="project-index">01</div>
 
                 <div className="project-info">
                   <h3>No projects yet</h3>
-                  <p>Create your first digital catalogue.</p>
+                  <p>Create your first BKM DIGITAL project.</p>
                 </div>
 
                 <Link href="/catalogue" className="project-arrow">
@@ -132,29 +134,36 @@ export default function ProjectsPage() {
                 </Link>
               </article>
             ) : (
-              catalogues.map((catalogue, index) => (
-                <article className="project-row" key={catalogue.id}>
+              projects.map((project, index) => (
+                <article className="project-row" key={project.id}>
                   <div className="project-index">
                     {String(index + 1).padStart(2, "0")}
                   </div>
 
                   <div className="project-info">
-                    <h3>{catalogue.name}</h3>
-                    <p>{catalogue.business_name}</p>
+                    <h3>{project.name}</h3>
+                    <p>{project.type}</p>
                   </div>
 
                   <div className="project-status">
-                    <span>Published</span>
+                    <span>{project.status}</span>
                   </div>
 
                   <div className="project-updated">
-                    Catalogue
+                    {new Date(project.created_at).toLocaleDateString()}
                   </div>
 
                   <Link
-                    href={`/catalogue/${catalogue.id}`}
+                    href={
+                      project.type.toLowerCase() === "website"
+                        ? "/website"
+                        : project.type.toLowerCase() === "shop" ||
+                            project.type.toLowerCase() === "online shop"
+                          ? "/shop"
+                          : "/catalogue"
+                    }
                     className="project-arrow"
-                    aria-label={`Open ${catalogue.name}`}
+                    aria-label={`Open ${project.name}`}
                   >
                     ↗
                   </Link>
@@ -178,31 +187,31 @@ export default function ProjectsPage() {
               <strong>→</strong>
             </Link>
 
-            <a href="#" className="builder-card">
+            <Link href="/website" className="builder-card">
               <span>02</span>
               <h3>Website</h3>
               <p>Build a professional website for a business.</p>
               <strong>→</strong>
-            </a>
+            </Link>
 
-            <a href="#" className="builder-card">
+            <Link href="/shop" className="builder-card">
               <span>03</span>
               <h3>Online Shop</h3>
               <p>Turn products into a complete online storefront.</p>
               <strong>→</strong>
-            </a>
+            </Link>
 
-            <a href="#" className="builder-card">
+            <Link href="/software" className="builder-card">
               <span>04</span>
               <h3>Software</h3>
               <p>Create a custom digital tool around a business need.</p>
               <strong>→</strong>
-            </a>
+            </Link>
           </div>
         </section>
 
         <footer className="builder-footer">
-          BKM DIGITAL / PROJECTS v1
+          BKM DIGITAL / PROJECTS v2
         </footer>
       </section>
     </main>
