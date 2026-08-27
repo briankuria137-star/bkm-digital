@@ -170,13 +170,7 @@ export default function Dashboard() {
                     Catalogue
                   </div>
 
-                  <Link
-                    href={`/catalogue/${catalogue.id}`}
-                    className="project-arrow"
-                    aria-label={`View ${catalogue.name}`}
-                  >
-                    ↗
-                  </Link>
+                  <Link href={`/c/${catalogue.id}`} className="view-catalogue-button" aria-label={`View ${catalogue.name} catalogue`}>View Catalogue →</Link>
                 </article>
               ))
             )}
