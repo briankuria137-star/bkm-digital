@@ -119,28 +119,19 @@ export default function CatalogueBuilder() {
   }
 
   async function saveCatalogue() {
-    if (!name.trim()) {
-      alert("Please enter a catalogue name.");
-      return;
-    }
-
-    if (!business.trim()) {
-      alert("Please enter a business name.");
-      return;
-    }
-
-    if (products.length === 0) {
-      alert("Add at least one product before saving.");
-      return;
-    }
+    if (!name.trim()) { alert("Please enter a catalogue name."); return; }
+    if (!business.trim()) { alert("Please enter a business name."); return; }
+    if (products.length === 0) { alert("Add at least one product before saving."); return; }
 
     setSaving(true);
-    setMessage("");
+    setMessage("STEP 1: SAVE STARTED");
 
     try {
       let currentCatalogueId = catalogueId;
 
       if (!currentCatalogueId) {
+        setMessage("STEP 2: Creating project...");
+
         const { data: project, error: projectError } = await supabase
           .from("projects")
           .insert({
@@ -151,9 +142,10 @@ export default function CatalogueBuilder() {
           .select("id")
           .single();
 
-        if (projectError) {
-          throw projectError;
-        }
+        if (projectError) throw projectError;
+        if (!project) throw new Error("Project was not returned.");
+
+        setMessage("STEP 3: Project created. Creating catalogue...");
 
         const { data: catalogue, error: catalogueError } = await supabase
           .from("catalogues")
@@ -165,13 +157,14 @@ export default function CatalogueBuilder() {
           .select("id")
           .single();
 
-        if (catalogueError) {
-          throw catalogueError;
-        }
+        if (catalogueError) throw catalogueError;
+        if (!catalogue) throw new Error("Catalogue was not returned.");
 
         currentCatalogueId = catalogue.id;
         setCatalogueId(catalogue.id);
       } else {
+        setMessage("STEP 3: Updating catalogue...");
+
         const { error } = await supabase
           .from("catalogues")
           .update({
@@ -180,19 +173,17 @@ export default function CatalogueBuilder() {
           })
           .eq("id", currentCatalogueId);
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
         const { error: deleteError } = await supabase
           .from("catalogue_products")
           .delete()
           .eq("catalogue_id", currentCatalogueId);
 
-        if (deleteError) {
-          throw deleteError;
-        }
+        if (deleteError) throw deleteError;
       }
+
+      setMessage("STEP 4: Saving products...");
 
       const productRows = products.map((product) => ({
         catalogue_id: currentCatalogueId,
@@ -206,20 +197,15 @@ export default function CatalogueBuilder() {
         .from("catalogue_products")
         .insert(productRows);
 
-      if (productError) {
-        throw productError;
-      }
+      if (productError) throw productError;
 
-      setMessage("Catalogue saved successfully.");
+      setMessage("STEP 5: SAVE COMPLETE — ID: " + currentCatalogueId);
+      console.log("SAVE COMPLETE:", currentCatalogueId);
+
     } catch (error) {
       console.error("Save catalogue error:", error);
-
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Something went wrong while saving.";
-
-      setMessage(`Save failed: ${errorMessage}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setMessage("SAVE FAILED: " + errorMessage);
     } finally {
       setSaving(false);
     }
