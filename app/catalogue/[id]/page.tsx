@@ -102,8 +102,8 @@ export default function EditCatalogue({
     field: keyof Product,
     value: string,
   ) {
-    setProducts(
-      products.map((product) =>
+    setProducts((currentProducts) =>
+      currentProducts.map((product) =>
         product.id === id ? { ...product, [field]: value } : product,
       ),
     );
