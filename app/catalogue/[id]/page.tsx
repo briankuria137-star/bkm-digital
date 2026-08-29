@@ -12,6 +12,7 @@ type Product = {
   price: string;
   description: string;
   image: string;
+  images: string[];
 };
 
 export default function EditCatalogue({
@@ -25,7 +26,9 @@ export default function EditCatalogue({
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploadingProductId, setUploadingProductId] = useState<number | null>(null);
+  const [uploadingProductId, setUploadingProductId] = useState<number | null>(
+    null,
+  );
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -33,9 +36,9 @@ export default function EditCatalogue({
       try {
         const { id } = await params;
         const catalogueUuid = id;
-      if (!catalogueUuid) {
-        throw new Error("Invalid catalogue ID.");
-      }
+        if (!catalogueUuid) {
+          throw new Error("Invalid catalogue ID.");
+        }
 
         const { data: catalogue, error: catalogueError } = await supabase
           .from("catalogues")
@@ -49,7 +52,7 @@ export default function EditCatalogue({
 
         const { data: productData, error: productError } = await supabase
           .from("catalogue_products")
-          .select("id, name, price, description, image")
+          .select("id, name, price, description, image, images")
           .eq("catalogue_id", catalogueUuid)
           .order("id", { ascending: true });
 
@@ -60,13 +63,21 @@ export default function EditCatalogue({
         setCatalogueId(catalogue.id);
         setName(catalogue.name);
         setBusiness(catalogue.business_name);
-        setProducts(productData || []);
+        setProducts(
+          (productData || []).map((product) => ({
+            ...product,
+            images:
+              Array.isArray(product.images) && product.images.length > 0
+                ? product.images
+                : product.image
+                  ? [product.image]
+                  : [],
+          })),
+        );
       } catch (error) {
         console.error("Edit catalogue loading error:", error);
         setMessage(
-          error instanceof Error
-            ? error.message
-            : "Unable to load catalogue.",
+          error instanceof Error ? error.message : "Unable to load catalogue.",
         );
       } finally {
         setLoading(false);
@@ -77,9 +88,10 @@ export default function EditCatalogue({
   }, [params]);
 
   function addProduct() {
-    const nextId = products.length > 0
-      ? Math.max(...products.map((product) => product.id)) + 1
-      : 1;
+    const nextId =
+      products.length > 0
+        ? Math.max(...products.map((product) => product.id)) + 1
+        : 1;
 
     setProducts([
       ...products,
@@ -89,6 +101,7 @@ export default function EditCatalogue({
         price: "KSh 0",
         description: "Add a description for this product.",
         image: "",
+        images: [],
       },
     ]);
   }
@@ -97,11 +110,7 @@ export default function EditCatalogue({
     setProducts(products.filter((product) => product.id !== id));
   }
 
-  function updateProduct(
-    id: number,
-    field: keyof Product,
-    value: string,
-  ) {
+  function updateProduct(id: number, field: keyof Product, value: string) {
     setProducts((currentProducts) =>
       currentProducts.map((product) =>
         product.id === id ? { ...product, [field]: value } : product,
@@ -113,51 +122,94 @@ export default function EditCatalogue({
     id: number,
     event: ChangeEvent<HTMLInputElement>,
   ) {
-    const file = event.target.files?.[0];
+    const files = Array.from(event.target.files || []);
 
-    if (!file) return;
+    if (files.length === 0) return;
 
-    if (!file.type.startsWith("image/")) {
-      alert("Please select an image file.");
+    const product = products.find((item) => item.id === id);
+
+    if (!product) {
       event.target.value = "";
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Image must be smaller than 5MB.");
+    const currentImages = product.images || [];
+    const remainingSlots = 5 - currentImages.length;
+
+    if (remainingSlots <= 0) {
+      alert("This product already has the maximum of 5 photos.");
       event.target.value = "";
       return;
+    }
+
+    const selectedFiles = files.slice(0, remainingSlots);
+
+    if (files.length > remainingSlots) {
+      alert(
+        `Only ${remainingSlots} more photo${remainingSlots === 1 ? "" : "s"} can be added. Maximum is 5 photos.`,
+      );
+    }
+
+    for (const file of selectedFiles) {
+      if (!file.type.startsWith("image/")) {
+        alert(`"${file.name}" is not a valid image file.`);
+        event.target.value = "";
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`"${file.name}" is larger than 5MB.`);
+        event.target.value = "";
+        return;
+      }
     }
 
     setUploadingProductId(id);
 
     try {
-      const extension =
-        file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const uploadedUrls: string[] = [];
 
-      const fileName = String(id) + "-" + crypto.randomUUID() + "." + extension;
+      for (const file of selectedFiles) {
+        const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
 
-      const { error } = await supabase.storage
-        .from("catalogue-images")
-        .upload(fileName, file, {
-          cacheControl: "3600",
-          upsert: true,
-          contentType: file.type,
-        });
+        const fileName =
+          String(id) + "-" + crypto.randomUUID() + "." + extension;
 
-      if (error) {
-        console.error("Image upload error:", error);
-        alert("Upload failed: " + error.message);
-        return;
+        const { error } = await supabase.storage
+          .from("catalogue-images")
+          .upload(fileName, file, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: file.type,
+          });
+
+        if (error) {
+          throw error;
+        }
+
+        const { data } = supabase.storage
+          .from("catalogue-images")
+          .getPublicUrl(fileName);
+
+        uploadedUrls.push(data.publicUrl);
       }
 
-      const { data } = supabase.storage
-        .from("catalogue-images")
-        .getPublicUrl(fileName);
+      setProducts((currentProducts) =>
+        currentProducts.map((item) => {
+          if (item.id !== id) return item;
 
-      updateProduct(id, "image", data.publicUrl);
+          const images = [...(item.images || []), ...uploadedUrls];
+
+          return {
+            ...item,
+            images,
+            image: images[0] || "",
+          };
+        }),
+      );
     } catch (error) {
-      console.error("Unexpected image upload error:", error);
+      console.error("Image upload error:", error);
+
       alert(
         error instanceof Error
           ? "Upload failed: " + error.message
@@ -169,7 +221,7 @@ export default function EditCatalogue({
     }
   }
 
-  async function saveChanges()  {
+  async function saveChanges() {
     if (!catalogueId) {
       setMessage("Catalogue is not ready.");
       return;
@@ -220,7 +272,8 @@ export default function EditCatalogue({
         name: product.name.trim(),
         price: product.price.trim(),
         description: product.description.trim(),
-        image: product.image || null,
+        image: product.images?.[0] || product.image || null,
+        images: product.images || [],
       }));
 
       const { error: productError } = await supabase
@@ -237,9 +290,7 @@ export default function EditCatalogue({
 
       setMessage(
         `Update failed: ${
-          error instanceof Error
-            ? error.message
-            : "Something went wrong."
+          error instanceof Error ? error.message : "Something went wrong."
         }`,
       );
     } finally {
@@ -250,9 +301,7 @@ export default function EditCatalogue({
   if (loading) {
     return (
       <main className="catalogue-builder">
-        <div className="public-catalogue-loading">
-          Loading catalogue...
-        </div>
+        <div className="public-catalogue-loading">Loading catalogue...</div>
       </main>
     );
   }
@@ -276,9 +325,7 @@ export default function EditCatalogue({
           BKM<span>DIGITAL</span>
         </Link>
 
-        <div className="builder-label">
-          EDIT CATALOGUE
-        </div>
+        <div className="builder-label">EDIT CATALOGUE</div>
 
         <nav className="builder-nav">
           <a href="#details">01&nbsp;&nbsp; Details</a>
@@ -314,10 +361,7 @@ export default function EditCatalogue({
           </div>
         )}
 
-        <section
-          id="details"
-          className="builder-section-panel"
-        >
+        <section id="details" className="builder-section-panel">
           <p className="panel-number">01 / DETAILS</p>
           <h2>Catalogue information.</h2>
 
@@ -326,9 +370,7 @@ export default function EditCatalogue({
               Catalogue name
               <input
                 value={name}
-                onChange={(event) =>
-                  setName(event.target.value)
-                }
+                onChange={(event) => setName(event.target.value)}
               />
             </label>
 
@@ -336,18 +378,13 @@ export default function EditCatalogue({
               Business name
               <input
                 value={business}
-                onChange={(event) =>
-                  setBusiness(event.target.value)
-                }
+                onChange={(event) => setBusiness(event.target.value)}
               />
             </label>
           </div>
         </section>
 
-        <section
-          id="products"
-          className="builder-section-panel"
-        >
+        <section id="products" className="builder-section-panel">
           <div className="panel-top">
             <div>
               <p className="panel-number">02 / PRODUCTS</p>
@@ -365,60 +402,144 @@ export default function EditCatalogue({
 
           <div className="product-editor-list">
             {products.map((product, index) => (
-              <article
-                className="product-editor"
-                key={product.id}
-              >
+              <article className="product-editor" key={product.id}>
                 <span className="product-index">
                   {String(index + 1).padStart(2, "0")}
                 </span>
 
                 <div className="product-fields">
                   <div className="image-upload-area">
-                    {product.image ? (
-                      <div className="uploaded-image">
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          width={800}
-                          height={800}
-                          className="uploaded-product-image"
-                        />
+                    {product.images && product.images.length > 0 ? (
+                      <>
+                        <div className="product-gallery-main">
+                          <Image
+                            src={product.images[0]}
+                            unoptimized
+                            alt={product.name || "Product image"}
+                            width={800}
+                            height={800}
+                            className="uploaded-product-image"
+                          />
+                          <span className="primary-image-badge">PRIMARY</span>
+                        </div>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateProduct(
-                              product.id,
-                              "image",
-                              "",
-                            )
-                          }
-                        >
-                          Remove image
-                        </button>
-                      </div>
+                        <div className="product-gallery-thumbnails">
+                          {product.images.map((image, imageIndex) => (
+                            <div
+                              className={`product-gallery-thumbnail ${imageIndex === 0 ? "active" : ""}`}
+                              key={`${image}-${imageIndex}`}
+                            >
+                              <button
+                                type="button"
+                                className="thumbnail-select"
+                                onClick={() => {
+                                  if (imageIndex === 0) return;
+
+                                  setProducts((currentProducts) =>
+                                    currentProducts.map((item) => {
+                                      if (item.id !== product.id) return item;
+
+                                      const images = [...item.images];
+                                      const [selectedImage] = images.splice(
+                                        imageIndex,
+                                        1,
+                                      );
+
+                                      return {
+                                        ...item,
+                                        images: [selectedImage, ...images],
+                                        image: selectedImage || "",
+                                      };
+                                    }),
+                                  );
+                                }}
+                              >
+                                <Image
+                                  src={image}
+                                  unoptimized
+                                  alt={`${product.name || "Product"} image ${imageIndex + 1}`}
+                                  width={160}
+                                  height={160}
+                                />
+                              </button>
+
+                              <button
+                                type="button"
+                                className="thumbnail-remove"
+                                onClick={() => {
+                                  setProducts((currentProducts) =>
+                                    currentProducts.map((item) => {
+                                      if (item.id !== product.id) return item;
+
+                                      const images = item.images.filter(
+                                        (_, index) => index !== imageIndex,
+                                      );
+
+                                      return {
+                                        ...item,
+                                        images,
+                                        image: images[0] || "",
+                                      };
+                                    }),
+                                  );
+                                }}
+                                aria-label={`Remove image ${imageIndex + 1}`}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="gallery-upload-footer">
+                          <span>{product.images.length}/5 photos</span>
+
+                          {product.images.length < 5 && (
+                            <label className="gallery-add-button">
+                              {uploadingProductId === product.id
+                                ? "Uploading..."
+                                : "+ Add photos"}
+
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                disabled={uploadingProductId === product.id}
+                                onChange={(event) =>
+                                  handleImageUpload(product.id, event)
+                                }
+                              />
+                            </label>
+                          )}
+                        </div>
+                      </>
                     ) : (
                       <label className="upload-box">
-                          <span>{uploadingProductId === product.id ? "…" : "+"}</span>
-                          <strong>
-                            {uploadingProductId === product.id
-                              ? "Uploading…"
-                              : "Upload product image"}
-                          </strong>
-                          <small>
-                            {uploadingProductId === product.id
-                              ? "Please wait while the image uploads."
-                              : "JPG, PNG or WEBP · Max 5MB"}
-                          </small>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            disabled={uploadingProductId === product.id}
-                            onChange={(event) =>
-                              handleImageUpload(product.id, event)
-                            }
-                          />
+                        <span>
+                          {uploadingProductId === product.id ? "…" : "+"}
+                        </span>
+
+                        <strong>
+                          {uploadingProductId === product.id
+                            ? "Uploading…"
+                            : "Upload product images"}
+                        </strong>
+
+                        <small>
+                          {uploadingProductId === product.id
+                            ? "Please wait while the images upload."
+                            : "JPG, PNG or WEBP · Max 5MB each · Up to 5 photos"}
+                        </small>
+
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          disabled={uploadingProductId === product.id}
+                          onChange={(event) =>
+                            handleImageUpload(product.id, event)
+                          }
+                        />
                       </label>
                     )}
                   </div>
@@ -426,11 +547,7 @@ export default function EditCatalogue({
                   <input
                     value={product.name}
                     onChange={(event) =>
-                      updateProduct(
-                        product.id,
-                        "name",
-                        event.target.value,
-                      )
+                      updateProduct(product.id, "name", event.target.value)
                     }
                     aria-label="Product name"
                     placeholder="Product name"
@@ -439,11 +556,7 @@ export default function EditCatalogue({
                   <input
                     value={product.price}
                     onChange={(event) =>
-                      updateProduct(
-                        product.id,
-                        "price",
-                        event.target.value,
-                      )
+                      updateProduct(product.id, "price", event.target.value)
                     }
                     aria-label="Product price"
                     placeholder="Price"
@@ -466,9 +579,7 @@ export default function EditCatalogue({
                 <button
                   type="button"
                   className="remove-product"
-                  onClick={() =>
-                    removeProduct(product.id)
-                  }
+                  onClick={() => removeProduct(product.id)}
                 >
                   Remove
                 </button>
@@ -477,10 +588,7 @@ export default function EditCatalogue({
           </div>
         </section>
 
-        <section
-          id="preview"
-          className="builder-section-panel preview-panel"
-        >
+        <section id="preview" className="builder-section-panel preview-panel">
           <p className="panel-number">03 / PREVIEW</p>
 
           <div className="catalogue-preview">
@@ -489,22 +597,17 @@ export default function EditCatalogue({
 
             <div className="preview-grid">
               {products.map((product) => (
-                <div
-                  className="preview-product"
-                  key={product.id}
-                >
+                <div className="preview-product" key={product.id}>
                   {product.image ? (
                     <Image
-                            className="preview-product-image"
-                            src={product.image}
-                            alt={product.name}
-                            width={800}
-                            height={800}
-                          />
+                      className="preview-product-image"
+                      src={product.image}
+                      alt={product.name}
+                      width={800}
+                      height={800}
+                    />
                   ) : (
-                    <div className="preview-image">
-                      PRODUCT
-                    </div>
+                    <div className="preview-image">PRODUCT</div>
                   )}
 
                   <h3>{product.name}</h3>

@@ -1128,7 +1128,8 @@ footer {
   width: 100%;
   height: 220px;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
+  background: #f4f4f2;
 }
 
 .uploaded-image button {
@@ -1147,7 +1148,8 @@ footer {
   width: 100%;
   height: 220px;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
+  background: #f4f4f2;
 }
 
 .catalogue-share-actions {
@@ -1167,7 +1169,9 @@ footer {
   border-radius: 999px;
   font: inherit;
   cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .catalogue-share-actions button:hover {
@@ -1199,7 +1203,9 @@ footer {
   font: inherit;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .product-order-button:hover {
@@ -1210,857 +1216,6 @@ footer {
 @media (max-width: 480px) {
   .product-order-button {
     min-height: 46px;
-  }
-}
-
-
-/* =========================================================
-   BKM DIGITAL — PROFESSIONAL PUBLIC CATALOGUE
-   ========================================================= */
-
-.public-catalogue {
-  min-height: 100vh;
-  width: 100%;
-  background: #fff;
-  color: #111;
-  padding: 0;
-}
-
-.public-catalogue-header {
-  text-align: center;
-  padding: 48px 20px 30px;
-  border-bottom: 1px solid #e8e8e8;
-}
-
-.public-catalogue-header p {
-  margin: 0 0 10px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  opacity: 0.55;
-}
-
-.public-catalogue-header h1 {
-  margin: 0;
-  font-size: clamp(30px, 5vw, 58px);
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-}
-
-.public-catalogue-header span {
-  display: block;
-  margin-top: 14px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  opacity: 0.45;
-}
-
-/* PRODUCT GRID */
-
-.public-product-grid {
-  width: min(1400px, 100%);
-  margin: 0 auto;
-  padding: 28px 20px 50px;
-
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-
-/* PRODUCT CARD */
-
-.public-product-card {
-  min-width: 0;
-  background: #f5f5f5;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  border-radius: 2px;
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-.public-product-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-}
-
-/* IMAGE AREA */
-
-.public-product-image,
-.public-product-placeholder {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  display: block;
-  object-fit: cover;
-}
-
-.public-product-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #e9e9e9;
-  color: #888;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-}
-
-/* PRODUCT INFORMATION */
-
-.public-product-info {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.public-product-info h2 {
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.2;
-  font-weight: 750;
-  letter-spacing: -0.02em;
-}
-
-.public-product-info strong {
-  display: block;
-  margin-top: 8px;
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.public-product-info p {
-  margin: 9px 0 16px;
-  color: #666;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-/* ORDER BUTTON */
-
-.product-order-button {
-  width: 100%;
-  min-height: 44px;
-  margin-top: auto;
-
-  border: 0;
-  border-radius: 0;
-
-  background: #111;
-  color: #fff;
-
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-
-  cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
-}
-
-.product-order-button:hover {
-  background: #333;
-  transform: translateY(-1px);
-}
-
-/* EMPTY STATE */
-
-.empty-catalogue {
-  grid-column: 1 / -1;
-  padding: 80px 20px;
-  text-align: center;
-  color: #777;
-}
-
-/* SHARE ACTIONS */
-
-.catalogue-share-actions {
-  width: min(700px, calc(100% - 40px));
-  margin: 0 auto 50px;
-
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.catalogue-share-actions button {
-  min-height: 42px;
-  padding: 0 18px;
-
-  border: 1px solid #ddd;
-  border-radius: 999px;
-
-  background: #fff;
-  color: #111;
-
-  font-size: 11px;
-  font-weight: 750;
-
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.catalogue-share-actions button:hover {
-  background: #111;
-  color: #fff;
-  border-color: #111;
-}
-
-/* FOOTER */
-
-.public-catalogue-footer {
-  padding: 30px 20px 40px;
-  border-top: 1px solid #e8e8e8;
-  text-align: center;
-}
-
-.public-catalogue-footer span {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  opacity: 0.45;
-}
-
-.public-catalogue-footer strong {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-}
-
-/* TABLET */
-
-@media (min-width: 700px) {
-  .public-product-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 22px;
-    padding: 36px 28px 60px;
-  }
-
-  .public-product-info {
-    padding: 18px;
-  }
-
-  .public-product-info h2 {
-    font-size: 18px;
-  }
-
-  .public-product-info strong {
-    font-size: 16px;
-  }
-}
-
-/* DESKTOP */
-
-@media (min-width: 1050px) {
-  .public-product-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 24px;
-    padding-left: 36px;
-    padding-right: 36px;
-  }
-
-  .public-catalogue-header {
-    padding-top: 70px;
-    padding-bottom: 40px;
-  }
-}
-
-/* SMALL PHONES */
-
-@media (max-width: 380px) {
-  .public-product-grid {
-    padding-left: 10px;
-    padding-right: 10px;
-    gap: 10px;
-  }
-
-  .public-product-info {
-    padding: 12px;
-  }
-
-  .public-product-info h2 {
-    font-size: 14px;
-  }
-
-  .public-product-info strong {
-    font-size: 14px;
-  }
-
-  .public-product-info p {
-    font-size: 11px;
-  }
-
-  .product-order-button {
-    min-height: 42px;
-    font-size: 10px;
-  }
-}
-
-
-/* =========================================================
-   BKM DIGITAL — RETAIL CATALOGUE V2
-   Image-led product grid
-   ========================================================= */
-
-.public-catalogue {
-  background: #ffffff;
-  color: #111111;
-}
-
-.public-catalogue-header {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 56px 24px 34px;
-  text-align: left;
-  border-bottom: 1px solid #e5e5e5;
-}
-
-.public-catalogue-header p {
-  margin: 0 0 12px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #666;
-}
-
-.public-catalogue-header h1 {
-  margin: 0;
-  font-size: clamp(32px, 5vw, 64px);
-  line-height: 0.95;
-  letter-spacing: -0.055em;
-  font-weight: 800;
-}
-
-.public-catalogue-header span {
-  margin-top: 16px;
-  display: block;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  color: #777;
-}
-
-/* GRID */
-
-.public-product-grid {
-  width: min(1400px, 100%);
-  margin: 0 auto;
-  padding: 28px 24px 70px;
-
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
-}
-
-/* CARD */
-
-.public-product-card {
-  min-width: 0;
-  background: #f5f5f5;
-  border-radius: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-.public-product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.10);
-}
-
-/* PRODUCT IMAGE */
-
-.public-product-image,
-.public-product-placeholder {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  display: block;
-}
-
-.public-product-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: #e8e8e8;
-  color: #777;
-
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.2em;
-}
-
-/* PRODUCT DETAILS */
-
-.public-product-info {
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.public-product-info h2 {
-  margin: 0;
-
-  font-size: clamp(15px, 2vw, 20px);
-  line-height: 1.1;
-  font-weight: 800;
-  letter-spacing: -0.025em;
-}
-
-.public-product-info strong {
-  display: block;
-  margin-top: 8px;
-
-  font-size: 16px;
-  line-height: 1;
-  font-weight: 800;
-}
-
-.public-product-info p {
-  margin: 11px 0 18px;
-
-  color: #666;
-  font-size: 12px;
-  line-height: 1.55;
-}
-
-/* WHATSAPP ORDER */
-
-.product-order-button {
-  width: 100%;
-  min-height: 46px;
-  margin-top: auto;
-
-  border: 0;
-  border-radius: 0;
-
-  background: #111;
-  color: #fff;
-
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-
-  cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
-}
-
-.product-order-button:hover {
-  background: #2a2a2a;
-  transform: translateY(-1px);
-}
-
-/* TABLET */
-
-@media (min-width: 700px) {
-  .public-product-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 24px;
-    padding: 34px 28px 80px;
-  }
-
-  .public-product-info {
-    padding: 20px;
-  }
-}
-
-/* DESKTOP */
-
-@media (min-width: 1100px) {
-  .public-product-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 26px;
-    padding-left: 36px;
-    padding-right: 36px;
-  }
-
-  .public-product-card {
-    min-height: 100%;
-  }
-}
-
-/* SMALL PHONE */
-
-@media (max-width: 420px) {
-  .public-catalogue-header {
-    padding: 40px 16px 26px;
-  }
-
-  .public-product-grid {
-    padding: 16px 10px 50px;
-    gap: 10px;
-  }
-
-  .public-product-info {
-    padding: 12px;
-  }
-
-  .public-product-info h2 {
-    font-size: 14px;
-  }
-
-  .public-product-info strong {
-    font-size: 14px;
-  }
-
-  .public-product-info p {
-    font-size: 10px;
-    margin-top: 8px;
-  }
-
-  .product-order-button {
-    min-height: 42px;
-    font-size: 9px;
-  }
-}
-
-
-/* =========================================================
-   BKM DIGITAL — PRODUCT CATALOGUE V3
-   Premium retail image treatment
-   ========================================================= */
-
-.public-product-image {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  display: block;
-  object-fit: cover;
-  object-position: center;
-  background: #f1f1f1;
-}
-
-.public-product-card {
-  position: relative;
-}
-
-.public-product-info {
-  background: #ffffff;
-}
-
-.public-product-info h2 {
-  text-transform: none;
-}
-
-.public-product-info strong {
-  letter-spacing: -0.02em;
-}
-
-.public-product-info p {
-  max-width: 42ch;
-}
-
-.product-order-button {
-  margin-top: 8px;
-  text-transform: uppercase;
-}
-
-@media (max-width: 420px) {
-  .public-product-image,
-  .public-product-placeholder {
-    aspect-ratio: 1 / 1;
-  }
-
-  .public-product-info {
-    min-height: 150px;
-  }
-
-  .public-product-info p {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-}
-
-
-/* =========================================================
-   BKM DIGITAL — CATALOGUE V4
-   Premium storefront shell
-   ========================================================= */
-
-.public-catalogue {
-  min-height: 100vh;
-  background: #fff;
-}
-
-.public-catalogue-header {
-  position: relative;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 42px 24px 28px;
-  border-bottom: 1px solid #e8e8e8;
-}
-
-.public-catalogue-header p {
-  margin: 0 0 10px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-}
-
-.public-catalogue-header h1 {
-  max-width: 900px;
-  margin: 0;
-  font-size: clamp(30px, 6vw, 68px);
-  line-height: .92;
-  letter-spacing: -.055em;
-  font-weight: 900;
-}
-
-.public-catalogue-header span {
-  display: block;
-  margin-top: 14px;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: #777;
-}
-
-/* PRODUCT AREA */
-
-.public-product-grid {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 28px 24px 80px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-
-/* PRODUCT CARD */
-
-.public-product-card {
-  background: #fff;
-  overflow: hidden;
-  border: 1px solid #ededed;
-  box-shadow: none;
-  transform: none;
-}
-
-.public-product-card:hover {
-  transform: none;
-  box-shadow: 0 12px 35px rgba(0,0,0,.08);
-}
-
-/* IMAGE */
-
-.public-product-image,
-.public-product-placeholder {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  display: block;
-}
-
-.public-product-image {
-  object-fit: cover;
-}
-
-.public-product-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f4f4f4;
-  color: #888;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: .18em;
-}
-
-/* PRODUCT INFORMATION */
-
-.public-product-info {
-  padding: 15px;
-  background: #fff;
-}
-
-.public-product-info h2 {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.15;
-  font-weight: 800;
-  letter-spacing: -.02em;
-}
-
-.public-product-info strong {
-  display: block;
-  margin-top: 7px;
-  font-size: 15px;
-  line-height: 1;
-  font-weight: 900;
-}
-
-.public-product-info p {
-  margin: 9px 0 15px;
-  color: #6b6b6b;
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-/* ORDER */
-
-.product-order-button {
-  width: 100%;
-  min-height: 44px;
-  margin-top: 2px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 0;
-  background: #111;
-  color: #fff;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.product-order-button:hover {
-  background: #000;
-  transform: none;
-}
-
-/* SHARE BAR */
-
-.catalogue-share-actions {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 24px 45px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.catalogue-share-actions button {
-  min-height: 42px;
-  padding: 0 16px;
-  border: 1px solid #dcdcdc;
-  border-radius: 0;
-  background: #fff;
-  color: #111;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.catalogue-share-actions button:hover {
-  background: #f5f5f5;
-  transform: none;
-}
-
-/* TABLET */
-
-@media (min-width: 700px) {
-  .public-catalogue-header {
-    padding: 55px 32px 34px;
-  }
-
-  .public-product-grid {
-    padding: 34px 32px 90px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 22px;
-  }
-
-  .public-product-info {
-    padding: 17px;
-  }
-
-  .public-product-info h2 {
-    font-size: 17px;
-  }
-
-  .public-product-info strong {
-    font-size: 16px;
-  }
-}
-
-/* DESKTOP */
-
-@media (min-width: 1100px) {
-  .public-catalogue-header {
-    padding-left: 42px;
-    padding-right: 42px;
-  }
-
-  .public-product-grid {
-    padding-left: 42px;
-    padding-right: 42px;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 24px;
-  }
-
-  .public-product-info {
-    padding: 18px;
-  }
-}
-
-/* PHONE */
-
-@media (max-width: 420px) {
-  .public-catalogue-header {
-    padding: 34px 14px 24px;
-  }
-
-  .public-product-grid {
-    padding: 16px 8px 55px;
-    gap: 8px;
-  }
-
-  .public-product-info {
-    padding: 11px;
-  }
-
-  .public-product-info h2 {
-    font-size: 13px;
-  }
-
-  .public-product-info strong {
-    font-size: 13px;
-  }
-
-  .public-product-info p {
-    font-size: 10px;
-    margin-bottom: 11px;
-  }
-
-  .product-order-button {
-    min-height: 40px;
-    padding: 0 7px;
-    font-size: 8px;
-  }
-
-  .catalogue-share-actions {
-    padding-left: 8px;
-    padding-right: 8px;
-  }
-
-  .catalogue-share-actions button {
-    flex: 1;
-    min-width: 0;
-    padding: 0 8px;
-    font-size: 8px;
   }
 }
 
@@ -2092,7 +1247,7 @@ footer {
   text-decoration: none;
   font-size: 17px;
   font-weight: 900;
-  letter-spacing: -.04em;
+  letter-spacing: -0.04em;
 }
 
 .builder-brand span {
@@ -2103,7 +1258,7 @@ footer {
   margin-top: 18px;
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: .16em;
+  letter-spacing: 0.16em;
   color: #777;
 }
 
@@ -2120,7 +1275,7 @@ footer {
   text-decoration: none;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
 }
 
 .builder-nav a:hover {
@@ -2149,15 +1304,15 @@ footer {
   margin: 0 0 10px;
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: .16em;
+  letter-spacing: 0.16em;
   color: #777;
 }
 
 .builder-header h1 {
   margin: 0;
   font-size: clamp(30px, 7vw, 62px);
-  line-height: .9;
-  letter-spacing: -.06em;
+  line-height: 0.9;
+  letter-spacing: -0.06em;
   font-weight: 900;
 }
 
@@ -2170,13 +1325,13 @@ footer {
   color: #fff;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
 }
 
 .publish-button:disabled {
-  opacity: .5;
+  opacity: 0.5;
   cursor: wait;
 }
 
@@ -2201,15 +1356,15 @@ footer {
   margin: 0 0 9px;
   font-size: 9px;
   font-weight: 900;
-  letter-spacing: .16em;
+  letter-spacing: 0.16em;
   color: #888;
 }
 
 .builder-section-panel h2 {
   margin: 0;
   font-size: clamp(24px, 5vw, 42px);
-  line-height: .95;
-  letter-spacing: -.045em;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
   font-weight: 900;
 }
 
@@ -2226,7 +1381,7 @@ footer {
   gap: 8px;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #555;
 }
@@ -2279,7 +1434,7 @@ footer {
   color: #fff;
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: .07em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   cursor: pointer;
 }
@@ -2408,7 +1563,7 @@ footer {
   padding: 26px 20px 8px;
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: .16em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #777;
 }
@@ -2438,7 +1593,8 @@ footer {
 }
 
 .preview-product-image {
-  object-fit: cover;
+  object-fit: contain;
+  background: #f4f4f2;
 }
 
 .preview-image {
@@ -2478,7 +1634,7 @@ footer {
   color: #888;
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: .12em;
+  letter-spacing: 0.12em;
 }
 
 /* TABLET */
@@ -2623,7 +1779,6 @@ footer {
   }
 }
 
-
 /* DASHBOARD — VIEW CATALOGUE */
 .view-catalogue-button {
   display: inline-flex;
@@ -2637,10 +1792,12 @@ footer {
   text-decoration: none;
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
-  transition: background .2s ease, transform .2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .view-catalogue-button:hover {
@@ -2657,14 +1814,1097 @@ footer {
 }
 
 
+/* =========================================================
+   BKM DIGITAL — PROFESSIONAL PRODUCT GALLERY
+   Horizontal mobile-first thumbnail rail
+   ========================================================= */
+
+.product-gallery-main {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #f4f4f1;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  isolation: isolate;
+}
+
+.product-gallery-main .uploaded-product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.primary-image-badge {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 2;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(15, 15, 15, 0.82);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  backdrop-filter: blur(10px);
+}
+
+.product-gallery-thumbnails {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 12px;
+  padding: 2px 2px 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.product-gallery-thumbnails::-webkit-scrollbar {
+  display: none;
+}
+
+.product-gallery-thumbnail {
+  position: relative;
+  flex: 0 0 74px;
+  width: 74px;
+  height: 74px;
+  scroll-snap-align: start;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f2f2ef;
+  border: 2px solid transparent;
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+.product-gallery-thumbnail.active {
+  border-color: #111;
+}
+
+.product-gallery-thumbnail:hover {
+  transform: translateY(-1px);
+}
+
+.product-gallery-thumbnail .thumbnail-select {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.product-gallery-thumbnail .thumbnail-select img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.thumbnail-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 3;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(15, 15, 15, 0.86);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.9);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.product-gallery-thumbnail:hover .thumbnail-remove,
+.product-gallery-thumbnail:focus-within .thumbnail-remove {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.gallery-upload-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+  min-width: 0;
+}
+
+.gallery-upload-footer > span {
+  flex: 0 0 auto;
+  color: #777;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.gallery-add-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 10px;
+  background: #fff;
+  color: #111;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.gallery-add-button:hover {
+  background: #f5f5f2;
+  border-color: rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.gallery-add-button input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.gallery-add-button input:disabled {
+  cursor: wait;
+}
+
+/* Mobile: deliberately make the rail easy to swipe */
+@media (max-width: 640px) {
+  .product-gallery-thumbnails {
+    gap: 8px;
+    padding-bottom: 10px;
+    margin-top: 10px;
+  }
+
+  .product-gallery-thumbnail {
+    flex-basis: 68px;
+    width: 68px;
+    height: 68px;
+    border-radius: 10px;
+  }
+
+  .thumbnail-remove {
+    opacity: 1;
+    transform: scale(1);
+    width: 21px;
+    height: 21px;
+  }
+
+  .gallery-upload-footer {
+    margin-top: 3px;
+  }
+
+  .gallery-add-button {
+    min-height: 36px;
+    padding: 0 12px;
+  }
+}
+
+/* Small phones */
+@media (max-width: 380px) {
+  .product-gallery-thumbnail {
+    flex-basis: 62px;
+    width: 62px;
+    height: 62px;
+  }
+
+  .gallery-upload-footer > span {
+    font-size: 10px;
+  }
+
+  .gallery-add-button {
+    padding: 0 10px;
+    font-size: 11px;
+  }
+}
+
+/* =========================================================
+   BKM DIGITAL — PROFESSIONAL PRODUCT GALLERY
+   Mobile-first / horizontal thumbnail rail
+   ========================================================= */
+
+.product-gallery-main {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #f4f4f1;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  isolation: isolate;
+}
+
+.product-gallery-main .uploaded-product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.primary-image-badge {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 2;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(15, 15, 15, 0.84);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+
+.product-gallery-thumbnails {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 12px;
+  padding: 2px 2px 9px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.product-gallery-thumbnails::-webkit-scrollbar {
+  display: none;
+}
+
+.product-gallery-thumbnail {
+  position: relative;
+  flex: 0 0 76px;
+  width: 76px;
+  height: 76px;
+  scroll-snap-align: start;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f2f2ef;
+  border: 2px solid transparent;
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+.product-gallery-thumbnail.active {
+  border-color: #111;
+}
+
+.product-gallery-thumbnail:hover {
+  transform: translateY(-1px);
+}
+
+.product-gallery-thumbnail .thumbnail-select {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.product-gallery-thumbnail .thumbnail-select img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.thumbnail-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 3;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(15, 15, 15, 0.88);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.9);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.product-gallery-thumbnail:hover .thumbnail-remove,
+.product-gallery-thumbnail:focus-within .thumbnail-remove {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.gallery-upload-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 5px;
+  min-width: 0;
+}
+
+.gallery-upload-footer > span {
+  flex: 0 0 auto;
+  color: #777;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+}
+
+.gallery-add-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 10px;
+  background: #fff;
+  color: #111;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.gallery-add-button:hover {
+  background: #f5f5f2;
+  border-color: rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.gallery-add-button input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.gallery-add-button input:disabled {
+  cursor: wait;
+}
+
+@media (max-width: 640px) {
+  .product-gallery-thumbnails {
+    gap: 8px;
+    margin-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .product-gallery-thumbnail {
+    flex-basis: 68px;
+    width: 68px;
+    height: 68px;
+    border-radius: 10px;
+  }
+
+  .thumbnail-remove {
+    opacity: 1;
+    transform: scale(1);
+    width: 21px;
+    height: 21px;
+  }
+
+  .gallery-upload-footer {
+    margin-top: 3px;
+  }
+
+  .gallery-add-button {
+    min-height: 36px;
+    padding: 0 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .product-gallery-thumbnail {
+    flex-basis: 62px;
+    width: 62px;
+    height: 62px;
+  }
+
+  .gallery-upload-footer > span {
+    font-size: 9px;
+  }
+
+  .gallery-add-button {
+    padding: 0 10px;
+    font-size: 11px;
+  }
+}
+
+/* =========================================
+   BKM DIGITAL / PROJECT MANAGEMENT UI
+   ========================================= */
+
+.project-list {
+  border-top: 1px solid #303030;
+}
+
+.project-row {
+  display: grid;
+  grid-template-columns: 55px minmax(180px, 1fr) 110px 110px auto;
+  align-items: center;
+  gap: 20px;
+  padding: 22px 0;
+  border-bottom: 1px solid #303030;
+}
+
+.project-index {
+  color: #666;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.project-info {
+  min-width: 0;
+}
+
+.project-info h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.project-info p {
+  margin: 0;
+  color: #777;
+  font-size: 12px;
+}
+
+.project-status {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.project-status span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 9px;
+  border: 1px solid #383838;
+  color: #aaa;
+}
+
+.project-updated {
+  color: #666;
+  font-size: 11px;
+}
+
+.project-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.project-action {
+  appearance: none;
+  border: 1px solid #333;
+  background: transparent;
+  color: #aaa;
+  min-height: 34px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.project-action:hover {
+  background: #f7f7f5;
+  border-color: #f7f7f5;
+  color: #111;
+}
+
+.project-action.delete {
+  color: #777;
+}
+
+.project-action.delete:hover {
+  background: #2a2a2a;
+  border-color: #555;
+  color: #fff;
+}
+
+.project-action:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+
+.catalogue-save-message {
+  margin-top: 25px;
+  padding: 14px 16px;
+  border: 1px solid #303030;
+  color: #aaa;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+
+.project-arrow {
+  width: 38px;
+  height: 38px;
+  border: 1px solid #333;
+  display: inline-grid;
+  place-items: center;
+  color: #aaa;
+  transition: all 0.2s ease;
+}
+
+.project-arrow:hover {
+  background: #f7f7f5;
+  color: #111;
+  border-color: #f7f7f5;
+}
+
+/* =========================================
+   BUILDER CARDS
+   ========================================= */
+
+.builder-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid #303030;
+  border-left: 1px solid #303030;
+}
+
+.builder-card {
+  position: relative;
+  min-height: 270px;
+  padding: 25px;
+  border-right: 1px solid #303030;
+  border-bottom: 1px solid #303030;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.builder-card:hover {
+  background: #f7f7f5;
+  color: #111;
+}
+
+.builder-card > span {
+  color: #666;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.builder-card h3 {
+  margin: 70px 0 14px;
+  font-size: 22px;
+  letter-spacing: -0.04em;
+}
+
+.builder-card p {
+  max-width: 210px;
+  margin: 0;
+  color: #777;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.builder-card:hover p {
+  color: #555;
+}
+
+.builder-card strong {
+  position: absolute;
+  right: 25px;
+  bottom: 22px;
+  font-size: 21px;
+}
+
+/* =========================================
+   DASHBOARD RESPONSIVE
+   ========================================= */
+
+@media (max-width: 1050px) {
+  .project-row {
+    grid-template-columns: 45px minmax(160px, 1fr) 90px auto;
+  }
+
+  .project-updated {
+    display: none;
+  }
+
+  .project-actions {
+    flex-wrap: wrap;
+  }
+
+  .builder-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 800px) {
+  .dashboard {
+    display: block;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-height: auto;
+    position: relative;
+    padding: 20px;
+    border-right: 0;
+    border-bottom: 1px solid #303030;
+  }
+
+  .dashboard-nav {
+    margin-top: 25px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .sidebar-bottom {
+    display: none;
+  }
+
+  .dashboard-content {
+    padding: 35px 20px 70px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .project-row {
+    grid-template-columns: 40px 1fr;
+    gap: 12px;
+  }
+
+  .project-status {
+    grid-column: 2;
+  }
+
+  .project-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .builder-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .dashboard-nav {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dashboard-header {
+    gap: 20px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 42px;
+  }
+
+  .welcome-panel {
+    padding: 28px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stat-card {
+    min-height: 120px;
+    padding: 18px;
+  }
+
+  .stat-card strong {
+    font-size: 35px;
+  }
+
+  .project-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    width: 100%;
+  }
+
+  .project-action {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   BKM DIGITAL — PUBLIC CATALOGUE
+   Canonical production styles
+   ========================================================= */
+
+.public-catalogue {
+  min-height: 100vh;
+  width: 100%;
+  background: #fff;
+  color: #111;
+  padding: 0 0 40px;
+}
+
+.public-catalogue-header {
+  width: min(1200px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0 32px;
+  text-align: center;
+}
+
+.public-catalogue-header p {
+  margin: 0 0 8px;
+  color: #777;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.public-catalogue-header h1 {
+  margin: 0;
+  font-size: clamp(28px, 5vw, 52px);
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+  font-weight: 900;
+}
+
+.public-catalogue-header span {
+  display: block;
+  margin-top: 12px;
+  color: #999;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.public-product-grid {
+  width: min(1200px, calc(100% - 32px));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.public-product-card {
+  min-width: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  border-radius: 18px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.045);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.public-product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.08);
+}
+
 .public-product-image-wrapper {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
   overflow: hidden;
+  background: #f4f4f1;
 }
 
 .public-product-image {
   object-fit: cover;
   object-position: center;
 }
+
+.public-product-image-count {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(15, 15, 15, 0.78);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(10px);
+}
+
+.public-product-thumbnails {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.public-product-thumbnails::-webkit-scrollbar {
+  display: none;
+}
+
+.public-product-thumbnail {
+  flex: 0 0 58px;
+  width: 58px;
+  height: 58px;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: #f4f4f1;
+  cursor: pointer;
+  opacity: 0.72;
+  transition:
+    border-color 160ms ease,
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.public-product-thumbnail:hover {
+  transform: translateY(-1px);
+  opacity: 1;
+}
+
+.public-product-thumbnail.active {
+  border-color: #111;
+  opacity: 1;
+}
+
+.public-product-thumbnail img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.public-product-placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #f4f4f1;
+  color: #999;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.public-product-info {
+  padding: 18px;
+}
+
+.public-product-info h2 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 850;
+  letter-spacing: -0.025em;
+}
+
+.public-product-info strong {
+  display: block;
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 900;
+}
+
+.public-product-info p {
+  margin: 10px 0 0;
+  color: #666;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.public-catalogue .product-order-button {
+  min-height: 46px;
+  margin-top: 16px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.public-catalogue .catalogue-share-actions {
+  width: min(1200px, calc(100% - 32px));
+  margin: 32px auto 0;
+  padding: 0;
+}
+
+.public-catalogue-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 36px;
+  color: #999;
+}
+
+.public-catalogue-footer span {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.public-catalogue-footer strong {
+  color: #111;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.public-catalogue-loading,
+.public-catalogue-error {
+  width: min(700px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 80px 0;
+  text-align: center;
+}
+
+.public-catalogue-error p {
+  margin: 0 0 8px;
+  color: #888;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.public-catalogue-error h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.035em;
+}
+
+.public-catalogue-error span {
+  display: block;
+  margin-top: 10px;
+  color: #777;
+  font-size: 12px;
+}
+
+.empty-catalogue {
+  grid-column: 1 / -1;
+  padding: 70px 20px;
+  text-align: center;
+  border: 1px dashed rgba(0, 0, 0, 0.16);
+  border-radius: 18px;
+  background: #fafafa;
+}
+
+.empty-catalogue p {
+  margin: 0;
+  color: #777;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .public-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+}
+
+@media (max-width: 600px) {
+  .public-catalogue-header {
+    width: min(100% - 24px, 1200px);
+    padding: 34px 0 24px;
+  }
+
+  .public-product-grid {
+    width: calc(100% - 24px);
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .public-product-card {
+    border-radius: 16px;
+  }
+
+  .public-product-info {
+    padding: 15px;
+  }
+
+  .public-product-info h2 {
+    font-size: 16px;
+  }
+
+  .public-product-info strong {
+    font-size: 17px;
+  }
+
+  .public-product-info p {
+    font-size: 11px;
+  }
+
+  .public-catalogue .catalogue-share-actions {
+    width: calc(100% - 24px);
+    margin-top: 24px;
+  }
+}
+

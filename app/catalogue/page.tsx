@@ -11,6 +11,7 @@ type Product = {
   price: string;
   description: string;
   image: string;
+  images: string[];
 };
 
 const initialProducts: Product[] = [
@@ -20,6 +21,7 @@ const initialProducts: Product[] = [
     price: "KSh 1,500",
     description: "Clean everyday sneaker for a modern casual look.",
     image: "",
+    images: [],
   },
   {
     id: 2,
@@ -27,6 +29,7 @@ const initialProducts: Product[] = [
     price: "KSh 2,000",
     description: "Smart leather-style loafer for work and occasions.",
     image: "",
+    images: [],
   },
 ];
 
@@ -44,6 +47,7 @@ export default function CatalogueBuilder() {
 
   const [catalogueId, setCatalogueId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadingProductId, setUploadingProductId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
 
   function addProduct() {
@@ -59,6 +63,7 @@ export default function CatalogueBuilder() {
         price: "KSh 0",
         description: "Add a description for this product.",
         image: "",
+        images: [],
       },
     ]);
   }
@@ -83,48 +88,114 @@ export default function CatalogueBuilder() {
     id: number,
     event: ChangeEvent<HTMLInputElement>,
   ) {
-    const file = event.target.files?.[0];
+    const files = Array.from(event.target.files || []);
 
-    if (!file) return;
+    if (!files.length) return;
 
-    if (!file.type.startsWith("image/")) {
-      alert("Please select an image file.");
+    const product = products.find((item) => item.id === id);
+
+    if (!product) return;
+
+    const currentImages = product.images || [];
+    const remainingSlots = 5 - currentImages.length;
+
+    if (remainingSlots <= 0) {
+      alert("This product already has 5 photos.");
+      event.target.value = "";
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Image must be smaller than 5MB.");
+    if (files.length > remainingSlots) {
+      alert(
+        `You can upload up to 5 photos per product. ${remainingSlots} slot(s) remaining.`,
+      );
+      event.target.value = "";
       return;
     }
 
-    const extension =
-      file.name.split(".").pop()?.toLowerCase() || "jpg";
+    for (const file of files) {
+      if (!file.type.startsWith("image/")) {
+        alert("Please select image files only.");
+        event.target.value = "";
+        return;
+      }
 
-    const fileName = `${id}-${crypto.randomUUID()}.${extension}`;
-
-    const { error } = await supabase.storage
-      .from("catalogue-images")
-      .upload(fileName, file, {
-        cacheControl: "3600",
-        upsert: true,
-        contentType: file.type,
-      });
-
-    if (error) {
-      console.error("Supabase upload error:", error);
-      alert(`Upload failed: ${error.message}`);
-      return;
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`${file.name} is larger than 5MB.`);
+        event.target.value = "";
+        return;
+      }
     }
 
-    const { data } = supabase.storage
-      .from("catalogue-images")
-      .getPublicUrl(fileName);
+    setUploadingProductId(id);
 
-    updateProduct(id, "image", data.publicUrl);
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (const file of files) {
+        const extension =
+          file.name.split(".").pop()?.toLowerCase() || "jpg";
+
+        const fileName =
+          `${id}-${crypto.randomUUID()}.${extension}`;
+
+        const { error } = await supabase.storage
+          .from("catalogue-images")
+          .upload(fileName, file, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: file.type,
+          });
+
+        if (error) {
+          throw error;
+        }
+
+        const { data } = supabase.storage
+          .from("catalogue-images")
+          .getPublicUrl(fileName);
+
+        uploadedUrls.push(data.publicUrl);
+      }
+
+      setProducts((currentProducts) =>
+        currentProducts.map((item) => {
+          if (item.id !== id) return item;
+
+          const images = [
+            ...(item.images || []),
+            ...uploadedUrls,
+          ];
+
+          return {
+            ...item,
+            images,
+            image: images[0] || "",
+          };
+        }),
+      );
+    } catch (error) {
+      console.error("Image upload error:", error);
+
+      alert(
+        error instanceof Error
+          ? `Upload failed: ${error.message}`
+          : "Upload failed. Please try again.",
+      );
+    } finally {
+      setUploadingProductId(null);
+      event.target.value = "";
+    }
   }
 
   function removeImage(id: number) {
-    updateProduct(id, "image", "");
+    setProducts((currentProducts) =>
+      currentProducts.map((item) =>
+        item.id === id
+          ? { ...item, images: [], image: "" }
+          : item,
+      ),
+    );
   }
 
   async function saveCatalogue() {
@@ -360,39 +431,128 @@ export default function CatalogueBuilder() {
 
                 <div className="product-fields">
                   <div className="image-upload-area">
-                    {product.image ? (
-                      <div className="uploaded-image">
-                        <Image
-                    src={product.image}
-                    alt={product.name}
-                    width={800}
-                    height={800}
-                    className="uploaded-product-image"
-                  />
+  {product.images && product.images.length > 0 ? (
+    <>
+      <div className="product-gallery-main">
+        <Image
+          src={product.images[0]}
+          unoptimized
+          alt={product.name || "Product image"}
+          width={800}
+          height={800}
+          className="uploaded-product-image"
+        />
+        <span className="primary-image-badge">PRIMARY</span>
+      </div>
 
-                        <button
-                          type="button"
-                          onClick={() => removeImage(product.id)}
-                        >
-                          Remove image
-                        </button>
-                      </div>
-                    ) : (
-                      <label className="upload-box">
-                        <span>+</span>
-                        <strong>Upload product image</strong>
-                        <small>JPG, PNG or WEBP · Max 5MB</small>
+      <div className="product-gallery-thumbnails">
+        {product.images.map((image, imageIndex) => (
+          <div
+            className={`product-gallery-thumbnail ${
+              imageIndex === 0 ? "active" : ""
+            }`}
+            key={`${image}-${imageIndex}`}
+          >
+            <button
+              type="button"
+              className="thumbnail-select"
+              onClick={() => {
+                if (imageIndex === 0) return;
 
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(event) =>
-                            handleImageUpload(product.id, event)
-                          }
-                        />
-                      </label>
-                    )}
-                  </div>
+                setProducts((currentProducts) =>
+                  currentProducts.map((item) => {
+                    if (item.id !== product.id) return item;
+
+                    const images = [...item.images];
+                    const [selectedImage] = images.splice(imageIndex, 1);
+
+                    return {
+                      ...item,
+                      images: [selectedImage, ...images],
+                      image: selectedImage || "",
+                    };
+                  }),
+                );
+              }}
+            >
+              <Image
+                src={image}
+                unoptimized
+                alt={`${product.name || "Product"} image ${imageIndex + 1}`}
+                width={160}
+                height={160}
+              />
+            </button>
+
+            <button
+              type="button"
+              className="thumbnail-remove"
+              onClick={() => {
+                setProducts((currentProducts) =>
+                  currentProducts.map((item) => {
+                    if (item.id !== product.id) return item;
+
+                    const images = item.images.filter(
+                      (_, index) => index !== imageIndex,
+                    );
+
+                    return {
+                      ...item,
+                      images,
+                      image: images[0] || "",
+                    };
+                  }),
+                );
+              }}
+              aria-label={`Remove image ${imageIndex + 1}`}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="gallery-upload-footer">
+        <span>{product.images.length}/5 photos</span>
+
+        {product.images.length < 5 && (
+          <label className="gallery-add-button">
+            {uploadingProductId === product.id
+              ? "Uploading..."
+              : "+ Add photos"}
+
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              disabled={uploadingProductId === product.id}
+              onChange={(event) =>
+                handleImageUpload(product.id, event)
+              }
+            />
+          </label>
+        )}
+      </div>
+    </>
+  ) : (
+    <label className="upload-box">
+      <span>+</span>
+      <strong>Upload product photos</strong>
+      <small>Up to 5 photos · JPG, PNG or WEBP · Max 5MB each</small>
+
+      <input
+        type="file"
+        accept="image/*"
+        multiple
+        disabled={uploadingProductId === product.id}
+        onChange={(event) =>
+          handleImageUpload(product.id, event)
+        }
+      />
+    </label>
+  )}
+</div>
+
 
                   <input
                     value={product.name}

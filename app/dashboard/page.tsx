@@ -13,6 +13,8 @@ type Catalogue = {
 export default function Dashboard() {
   const [catalogues, setCatalogues] = useState<Catalogue[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     async function loadCatalogues() {
@@ -33,15 +35,97 @@ export default function Dashboard() {
     loadCatalogues();
   }, []);
 
+  async function deleteCatalogue(catalogue: Catalogue) {
+    const confirmed = window.confirm(
+      `Delete "${catalogue.name}"?\n\nThis will permanently remove the catalogue and its products.`,
+    );
+
+    if (!confirmed) return;
+
+    setDeletingId(catalogue.id);
+    setMessage("");
+
+    try {
+      const { error: productsError } = await supabase
+        .from("catalogue_products")
+        .delete()
+        .eq("catalogue_id", catalogue.id);
+
+      if (productsError) {
+        throw productsError;
+      }
+
+      const { error: catalogueError } = await supabase
+        .from("catalogues")
+        .delete()
+        .eq("id", catalogue.id);
+
+      if (catalogueError) {
+        throw catalogueError;
+      }
+
+      setCatalogues((current) =>
+        current.filter((item) => item.id !== catalogue.id),
+      );
+
+      setMessage("Catalogue deleted successfully.");
+    } catch (error) {
+      console.error("Delete catalogue error:", error);
+
+      setMessage(
+        error instanceof Error
+          ? `Delete failed: ${error.message}`
+          : "Delete failed. Please try again.",
+      );
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  async function shareCatalogue(catalogueId: string) {
+    const url = `${window.location.origin}/c/${catalogueId}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "BKM DIGITAL Catalogue",
+          text: "View this digital catalogue.",
+          url,
+        });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        setMessage("Catalogue link copied to clipboard.");
+      } else {
+        window.prompt("Copy this catalogue link:", url);
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name !== "AbortError") {
+        console.error("Share error:", error);
+      }
+    }
+  }
+
   const projectCount = catalogues.length;
   const publishedCount = catalogues.length;
   const draftCount = 0;
 
   const stats = [
-    { label: "Projects", value: String(projectCount).padStart(2, "0") },
-    { label: "Published", value: String(publishedCount).padStart(2, "0") },
-    { label: "Drafts", value: String(draftCount).padStart(2, "0") },
-    { label: "Templates", value: "00" },
+    {
+      label: "Projects",
+      value: String(projectCount).padStart(2, "0"),
+    },
+    {
+      label: "Published",
+      value: String(publishedCount).padStart(2, "0"),
+    },
+    {
+      label: "Drafts",
+      value: String(draftCount).padStart(2, "0"),
+    },
+    {
+      label: "Templates",
+      value: "00",
+    },
   ];
 
   return (
@@ -103,15 +187,15 @@ export default function Dashboard() {
         <section className="welcome-panel">
           <div>
             <p className="dashboard-eyebrow">YOUR DIGITAL WORKSPACE</p>
+
             <h2>What are we building today?</h2>
-            <p>
-              Create, manage and publish digital products from one place.
-            </p>
+
+            <p>Create, manage and publish digital products from one place.</p>
           </div>
 
-          <a href="#new-project" className="create-button">
+          <Link href="/catalogue" className="create-button">
             + New Project
-          </a>
+          </Link>
         </section>
 
         <section className="stats-grid">
@@ -122,6 +206,12 @@ export default function Dashboard() {
             </div>
           ))}
         </section>
+
+        {message && (
+          <div className="catalogue-save-message" role="status">
+            {message}
+          </div>
+        )}
 
         <section id="projects" className="projects-section">
           <div className="section-top">
@@ -144,11 +234,15 @@ export default function Dashboard() {
             ) : catalogues.length === 0 ? (
               <article className="project-row">
                 <div className="project-index">01</div>
+
                 <div className="project-info">
                   <h3>No catalogues yet</h3>
                   <p>Create your first digital catalogue.</p>
                 </div>
-                <div className="project-arrow">→</div>
+
+                <Link href="/catalogue" className="view-catalogue-button">
+                  Create Catalogue →
+                </Link>
               </article>
             ) : (
               catalogues.map((catalogue, index) => (
@@ -166,11 +260,42 @@ export default function Dashboard() {
                     <span>Published</span>
                   </div>
 
-                  <div className="project-updated">
-                    Catalogue
-                  </div>
+                  <div className="project-updated">Catalogue</div>
 
-                  <Link href={`/catalogue/${catalogue.id}`} className="view-catalogue-button" aria-label={`View ${catalogue.name} catalogue`}>View Catalogue →</Link>
+                  <div className="project-actions">
+                    <Link
+                      href={`/catalogue/${catalogue.id}`}
+                      className="project-action edit"
+                    >
+                      Edit
+                    </Link>
+
+                    <Link
+                      href={`/c/${catalogue.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="project-action preview"
+                    >
+                      Preview
+                    </Link>
+
+                    <button
+                      type="button"
+                      className="project-action share"
+                      onClick={() => shareCatalogue(catalogue.id)}
+                    >
+                      Share
+                    </button>
+
+                    <button
+                      type="button"
+                      className="project-action delete"
+                      disabled={deletingId === catalogue.id}
+                      onClick={() => deleteCatalogue(catalogue)}
+                    >
+                      {deletingId === catalogue.id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
                 </article>
               ))
             )}
@@ -214,9 +339,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <footer className="builder-footer">
-          BKM DIGITAL / WORKSPACE v1
-        </footer>
+        <footer className="builder-footer">BKM DIGITAL / WORKSPACE v1</footer>
       </section>
     </main>
   );
