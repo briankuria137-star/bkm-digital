@@ -84,12 +84,12 @@ export default function Home() {
 
         <div className="services-grid">
           {services.map((service) => (
-            <article className="service-card" key={service.number}>
+            <Link href={service.number === "01" ? "/catalogue" : service.number === "02" ? "/website" : "/shop"} className="service-card" key={service.number}>
               <span className="service-number">{service.number}</span>
               <h3>{service.title}</h3>
               <p>{service.description}</p>
               <span className="card-arrow">↗</span>
-            </article>
+            </Link>
           ))}
         </div>
       </section>
@@ -99,11 +99,20 @@ export default function Home() {
           <p className="eyebrow">THE SHOWCASE</p>
           <h2>From idea to digital product.</h2>
         </div>
-
-        <p>
-          Yobby Kicks is one of our early projects — demonstrating how BKM
-          DIGITAL can turn a real business into a stronger digital experience.
-        </p>
+        <a
+          href="https://yobby-kicks.vercel.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="showcase-link"
+        >
+          <span>
+            <strong>Yobby Kicks</strong>
+            <br />
+            Our early catalogue project — built to demonstrate how BKM DIGITAL
+            can turn a real business into a stronger digital experience.
+          </span>
+          <span>View project ↗</span>
+        </a>
       </section>
 
       <section id="contact" className="contact-section">
