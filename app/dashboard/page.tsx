@@ -2,101 +2,77 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { supabase } from "../../lib/supabase";
-
-type Catalogue = {
-  id: string;
-  name: string;
-  business_name: string;
-};
+import { readError } from "../../lib/catalogue";
+import { deleteWorkspaceItem, loadWorkspace, type WorkspaceItem } from "../../lib/studio";
 
 export default function Dashboard() {
-  const [catalogues, setCatalogues] = useState<Catalogue[]>([]);
+  const [items, setItems] = useState<WorkspaceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const [greeting, setGreeting] = useState("Welcome back.");
 
   useEffect(() => {
-    async function loadCatalogues() {
-      const { data, error } = await supabase
-        .from("catalogues")
-        .select("id, name, business_name")
-        .order("id", { ascending: false });
-
-      if (error) {
-        console.error("Dashboard catalogue error:", error);
-      } else {
-        setCatalogues(data || []);
-      }
-
-      setLoading(false);
-    }
-
-    loadCatalogues();
+    const hour = new Date().getHours();
+    const next =
+      hour < 12 ? "Good morning." : hour < 17 ? "Good afternoon." : "Good evening.";
+    const timer = window.setTimeout(() => setGreeting(next), 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
-  async function deleteCatalogue(catalogue: Catalogue) {
+  useEffect(() => {
+    async function loadItems() {
+      try {
+        setItems(await loadWorkspace());
+      } catch (error) {
+        console.error("Workspace load error:", error);
+        setLoadError(readError(error));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadItems();
+  }, []);
+
+  async function deleteItem(item: WorkspaceItem) {
     const confirmed = window.confirm(
-      `Delete "${catalogue.name}"?\n\nThis will permanently remove the catalogue and its products.`,
+      `Delete "${item.name}"?\n\nThis permanently removes the ${item.type} and its public link.`,
     );
 
     if (!confirmed) return;
 
-    setDeletingId(catalogue.id);
+    setDeletingId(item.id);
     setMessage("");
 
     try {
-      const { error: productsError } = await supabase
-        .from("catalogue_products")
-        .delete()
-        .eq("catalogue_id", catalogue.id);
-
-      if (productsError) {
-        throw productsError;
-      }
-
-      const { error: catalogueError } = await supabase
-        .from("catalogues")
-        .delete()
-        .eq("id", catalogue.id);
-
-      if (catalogueError) {
-        throw catalogueError;
-      }
-
-      setCatalogues((current) =>
-        current.filter((item) => item.id !== catalogue.id),
-      );
-
-      setMessage("Catalogue deleted successfully.");
+      await deleteWorkspaceItem(item);
+      setItems((current) => current.filter((entry) => entry.id !== item.id));
+      setMessage("Project deleted.");
     } catch (error) {
-      console.error("Delete catalogue error:", error);
-
-      setMessage(
-        error instanceof Error
-          ? `Delete failed: ${error.message}`
-          : "Delete failed. Please try again.",
-      );
+      console.error("Delete error:", error);
+      setMessage(`Delete failed: ${readError(error)}`);
     } finally {
       setDeletingId(null);
     }
   }
 
-  async function shareCatalogue(catalogueId: string) {
-    const url = `${window.location.origin}/c/${catalogueId}`;
+  async function shareItem(item: WorkspaceItem) {
+    const url = `${window.location.origin}${item.liveHref}`;
 
     try {
       if (navigator.share) {
         await navigator.share({
-          title: "BKM DIGITAL Catalogue",
-          text: "View this digital catalogue.",
+          title: item.name,
+          text: `${item.name} — ${item.detail}`,
           url,
         });
       } else if (navigator.clipboard) {
         await navigator.clipboard.writeText(url);
-        setMessage("Catalogue link copied to clipboard.");
+        setMessage("Link copied.");
       } else {
-        window.prompt("Copy this catalogue link:", url);
+        window.prompt("Copy this link:", url);
       }
     } catch (error) {
       if (error instanceof Error && error.name !== "AbortError") {
@@ -105,9 +81,11 @@ export default function Dashboard() {
     }
   }
 
-  const projectCount = catalogues.length;
-  const publishedCount = catalogues.length;
-  const draftCount = 0;
+  const projectCount = items.length;
+  const publishedCount = items.filter(
+    (item) => item.status === "published" || item.status === "live",
+  ).length;
+  const draftCount = items.filter((item) => item.status === "draft").length;
 
   const stats = [
     {
@@ -123,8 +101,8 @@ export default function Dashboard() {
       value: String(draftCount).padStart(2, "0"),
     },
     {
-      label: "Templates",
-      value: "00",
+      label: "Builders",
+      value: "04",
     },
   ];
 
@@ -136,15 +114,15 @@ export default function Dashboard() {
         </div>
 
         <nav className="dashboard-nav">
-          <a href="/dashboard" className="active">
+          <Link href="/dashboard" className="active">
             <span>01</span>
             Dashboard
-          </a>
+          </Link>
 
-          <a href="#projects">
+          <Link href="/projects">
             <span>02</span>
             Projects
-          </a>
+          </Link>
 
           <Link href="/catalogue">
             <span>03</span>
@@ -153,12 +131,12 @@ export default function Dashboard() {
 
           <a href="#new-project">
             <span>04</span>
-            Templates
+            Builders
           </a>
 
-          <a href="#new-project">
+          <a href="#workspace">
             <span>05</span>
-            Settings
+            Studio
           </a>
         </nav>
 
@@ -176,7 +154,7 @@ export default function Dashboard() {
         <header className="dashboard-header">
           <div>
             <p className="dashboard-eyebrow">BKM DIGITAL / WORKSPACE</p>
-            <h1>Good morning.</h1>
+            <h1>{greeting}</h1>
           </div>
 
           <Link href="/" className="back-link">
@@ -227,51 +205,56 @@ export default function Dashboard() {
             {loading ? (
               <article className="project-row">
                 <div className="project-info">
-                  <h3>Loading catalogues...</h3>
+                  <h3>Loading projects...</h3>
                   <p>Please wait.</p>
                 </div>
               </article>
-            ) : catalogues.length === 0 ? (
+            ) : loadError ? (
+              <article className="project-row">
+                <div className="project-index">—</div>
+                <div className="project-info">
+                  <h3>Projects could not be loaded</h3>
+                  <p>{loadError}</p>
+                </div>
+              </article>
+            ) : items.length === 0 ? (
               <article className="project-row">
                 <div className="project-index">01</div>
 
                 <div className="project-info">
-                  <h3>No catalogues yet</h3>
-                  <p>Create your first digital catalogue.</p>
+                  <h3>No projects yet</h3>
+                  <p>Start with a catalogue, website, shop, or software brief.</p>
                 </div>
 
                 <Link href="/catalogue" className="view-catalogue-button">
-                  Create Catalogue →
+                  Create catalogue
                 </Link>
               </article>
             ) : (
-              catalogues.map((catalogue, index) => (
-                <article className="project-row" key={catalogue.id}>
+              items.map((item, index) => (
+                <article className="project-row" key={`${item.type}-${item.id}`}>
                   <div className="project-index">
                     {String(index + 1).padStart(2, "0")}
                   </div>
 
                   <div className="project-info">
-                    <h3>{catalogue.name}</h3>
-                    <p>{catalogue.business_name}</p>
+                    <h3>{item.name}</h3>
+                    <p>{item.detail}</p>
                   </div>
 
                   <div className="project-status">
-                    <span>Published</span>
+                    <span>{item.status}</span>
                   </div>
 
-                  <div className="project-updated">Catalogue</div>
+                  <div className="project-updated">{item.type}</div>
 
                   <div className="project-actions">
-                    <Link
-                      href={`/catalogue/${catalogue.id}`}
-                      className="project-action edit"
-                    >
+                    <Link href={item.editHref} className="project-action edit">
                       Edit
                     </Link>
 
                     <Link
-                      href={`/c/${catalogue.id}`}
+                      href={item.liveHref}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="project-action preview"
@@ -282,7 +265,7 @@ export default function Dashboard() {
                     <button
                       type="button"
                       className="project-action share"
-                      onClick={() => shareCatalogue(catalogue.id)}
+                      onClick={() => shareItem(item)}
                     >
                       Share
                     </button>
@@ -290,10 +273,10 @@ export default function Dashboard() {
                     <button
                       type="button"
                       className="project-action delete"
-                      disabled={deletingId === catalogue.id}
-                      onClick={() => deleteCatalogue(catalogue)}
+                      disabled={deletingId === item.id}
+                      onClick={() => deleteItem(item)}
                     >
-                      {deletingId === catalogue.id ? "Deleting..." : "Delete"}
+                      {deletingId === item.id ? "Deleting..." : "Delete"}
                     </button>
                   </div>
                 </article>
@@ -316,30 +299,64 @@ export default function Dashboard() {
               <strong>→</strong>
             </Link>
 
-            <a href="/website" className="builder-card">
+            <Link href="/website" className="builder-card">
               <span>02</span>
               <h3>Website</h3>
               <p>Build a professional website for a business.</p>
               <strong>→</strong>
-            </a>
+            </Link>
 
-            <a href="/shop" className="builder-card">
+            <Link href="/shop" className="builder-card">
               <span>03</span>
               <h3>Online Shop</h3>
               <p>Turn products into a complete online storefront.</p>
               <strong>→</strong>
-            </a>
+            </Link>
 
-            <a href="/software" className="builder-card">
+            <Link href="/software" className="builder-card">
               <span>04</span>
               <h3>Software</h3>
               <p>Create a custom digital tool around a business need.</p>
               <strong>→</strong>
-            </a>
+            </Link>
           </div>
         </section>
 
-        <footer className="builder-footer">BKM DIGITAL / WORKSPACE v1</footer>
+        <section id="workspace" className="builder-section studio-panel">
+          <div>
+            <p className="dashboard-eyebrow">STUDIO</p>
+            <h2>A quieter place to work.</h2>
+          </div>
+          <div className="studio-grid">
+            <article>
+              <span>01</span>
+              <h3>Catalogues go live when you save.</h3>
+              <p>
+                A saved catalogue has a public link your customers can open, share,
+                and use to order on WhatsApp.
+              </p>
+            </article>
+            <article>
+              <span>02</span>
+              <h3>Websites, shops, and software.</h3>
+              <p>
+                Save a website, shop, or software brief and it gets a public link,
+                the same way a catalogue does.
+              </p>
+            </article>
+            <article>
+              <span>03</span>
+              <h3>Need a hand?</h3>
+              <p>
+                Write to{" "}
+                <a href="mailto:hello@bkmdigital.co.ke">hello@bkmdigital.co.ke</a>{" "}
+                and we will pick it up from the brief.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <footer className="builder-footer">BKM DIGITAL / WORKSPACE</footer>
       </section>
     </main>
   );

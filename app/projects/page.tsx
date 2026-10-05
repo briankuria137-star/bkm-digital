@@ -2,42 +2,24 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { supabase } from "../../lib/supabase";
-
-type Project = {
-  id: string;
-  name: string;
-  type: string;
-  status: string;
-  created_at: string;
-  catalogue_id?: string | null;
-};
+import { readError } from "../../lib/catalogue";
+import { loadWorkspace, type WorkspaceItem } from "../../lib/studio";
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<WorkspaceItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     async function loadProjects() {
-      const { data, error } = await supabase
-        .from("projects")
-        .select("id, name, type, status, created_at, catalogues(id)")
-        .order("created_at", { ascending: false });
-
-      if (error) {
+      try {
+        setProjects(await loadWorkspace());
+      } catch (error) {
         console.error("Projects error:", error);
-      } else {
-        setProjects((data || []).map((project) => {
-          const related = project.catalogues as unknown;
-          const catalogue = Array.isArray(related) ? related[0] as { id?: string } | undefined : related as { id?: string } | null;
-          return {
-            ...project,
-            catalogue_id: catalogue?.id ?? null,
-          };
-        }));
+        setLoadError(readError(error));
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     }
 
     loadProjects();
@@ -117,7 +99,9 @@ export default function ProjectsPage() {
               <h2>Projects</h2>
             </div>
 
-            <span>{projects.length} project(s)</span>
+            <span>
+              {projects.length} {projects.length === 1 ? "project" : "projects"}
+            </span>
           </div>
 
           <div className="project-list">
@@ -125,7 +109,15 @@ export default function ProjectsPage() {
               <article className="project-row">
                 <div className="project-info">
                   <h3>Loading projects...</h3>
-                  <p>Please wait.</p>
+                  <p>Catalogues, websites, shops, and software briefs.</p>
+                </div>
+              </article>
+            ) : loadError ? (
+              <article className="project-row">
+                <div className="project-index">—</div>
+                <div className="project-info">
+                  <h3>Projects could not be loaded</h3>
+                  <p>{loadError}</p>
                 </div>
               </article>
             ) : projects.length === 0 ? (
@@ -143,35 +135,24 @@ export default function ProjectsPage() {
               </article>
             ) : (
               projects.map((project, index) => (
-                <article className="project-row" key={project.id}>
+                <article className="project-row" key={`${project.type}-${project.id}`}>
                   <div className="project-index">
                     {String(index + 1).padStart(2, "0")}
                   </div>
 
                   <div className="project-info">
                     <h3>{project.name}</h3>
-                    <p>{project.type}</p>
+                    <p>{project.detail}</p>
                   </div>
 
                   <div className="project-status">
                     <span>{project.status}</span>
                   </div>
 
-                  <div className="project-updated">
-                    {new Date(project.created_at).toLocaleDateString()}
-                  </div>
+                  <div className="project-updated">{project.type}</div>
 
                   <Link
-                    href={
-                      project.type.toLowerCase() === "catalogue" && project.catalogue_id
-                        ? `/catalogue/${project.catalogue_id}`
-                        : project.type.toLowerCase() === "website"
-                        ? "/website"
-                        : project.type.toLowerCase() === "shop" ||
-                          project.type.toLowerCase() === "online shop"
-                        ? "/shop"
-                        : "/catalogue"
-                    }
+                    href={project.editHref}
                     className="project-arrow"
                     aria-label={`Open ${project.name}`}
                   >
