@@ -110,7 +110,7 @@ const CORE_COLUMNS =
 
 const OPTIONAL_COLUMNS = ["email", "theme", "layout", "accent", "radius"] as const;
 
-export function readError(error: unknown): string {
+function rawError(error: unknown): string {
   if (error instanceof Error && error.message) return error.message;
 
   if (error && typeof error === "object" && "message" in error) {
@@ -121,8 +121,41 @@ export function readError(error: unknown): string {
   return "Something went wrong. Please try again.";
 }
 
+export function publicError(error: unknown): string {
+  const normalized = rawError(error).toLowerCase();
+
+  if (/pgrst116|0 rows|cannot coerce|multiple \(or no\) rows|not found/.test(normalized)) {
+    return "This link does not match a published page.";
+  }
+
+  return "This page cannot be opened right now. Please try again shortly.";
+}
+
+export function readError(error: unknown): string {
+  const message = rawError(error);
+  const normalized = message.toLowerCase();
+
+  if (/invalid api key|jwt|apikey|unauthorized/.test(normalized)) {
+    return "The workspace could not connect. Check the Supabase keys for this project.";
+  }
+
+  if (/failed to fetch|network|fetch failed|enotfound/.test(normalized)) {
+    return "The workspace could not be reached. Check your connection and try again.";
+  }
+
+  if (/studio_documents/.test(normalized) && /schema cache|relation|does not exist|could not find/.test(normalized)) {
+    return "This project could not be saved yet. Run the studio update in your database, then try again.";
+  }
+
+  if (/catalogue_product_images/.test(normalized) && /schema cache|relation|does not exist|could not find/.test(normalized)) {
+    return "Extra photos could not be stored yet. Run the catalogue design update in your database.";
+  }
+
+  return message;
+}
+
 function missingColumn(error: unknown): boolean {
-  const message = readError(error).toLowerCase();
+  const message = rawError(error).toLowerCase();
   return (
     message.includes("column") ||
     message.includes("schema cache") ||

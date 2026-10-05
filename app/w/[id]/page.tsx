@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import PublicStatus from "../../../components/PublicStatus";
 import PublicWebsiteView from "../../../components/PublicWebsiteView";
-import { readError } from "../../../lib/catalogue";
+import { publicError } from "../../../lib/catalogue";
 import { loadStudioDocument, normalizeWebsite, type WebsitePayload } from "../../../lib/studio";
 
 export default function PublicWebsitePage({
@@ -24,7 +25,7 @@ export default function PublicWebsitePage({
         if (document.kind !== "website") throw new Error("This website was not found.");
         if (!cancelled) setSite(normalizeWebsite(document.payload));
       } catch (err) {
-        if (!cancelled) setError(readError(err));
+        if (!cancelled) setError(publicError(err));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -47,11 +48,11 @@ export default function PublicWebsitePage({
   if (error || !site) {
     return (
       <main className="public-site">
-        <div className="public-catalogue-error">
-          <p>WEBSITE</p>
-          <h1>Website not found.</h1>
-          <span>{error || "This page does not exist."}</span>
-        </div>
+        <PublicStatus
+          eyebrow="WEBSITE"
+          title="Website not found."
+          detail={error || "This page does not exist."}
+        />
       </main>
     );
   }

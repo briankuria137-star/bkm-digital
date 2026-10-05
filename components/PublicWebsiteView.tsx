@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { whatsAppHref } from "../lib/catalogue";
 import type { WebsitePayload } from "../lib/studio";
 
@@ -10,6 +11,15 @@ export default function PublicWebsiteView({
   site: WebsitePayload;
   mode?: "live" | "preview";
 }) {
+  useEffect(() => {
+    if (mode === "preview") return;
+    const previous = document.title;
+    document.title = `${site.business} · BKM DIGITAL`;
+    return () => {
+      document.title = previous;
+    };
+  }, [mode, site.business]);
+
   const contactText = `Hello ${site.business}, I visited your website and would like to talk.`;
   const whatsapp = site.whatsapp.trim()
     ? whatsAppHref(site.whatsapp, contactText)

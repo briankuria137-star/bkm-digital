@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { whatsAppHref } from "../lib/catalogue";
 import type { ShopPayload, ShopProduct } from "../lib/studio";
 
@@ -19,6 +19,15 @@ export default function PublicShopView({
   shop: ShopPayload;
   mode?: "live" | "preview";
 }) {
+  useEffect(() => {
+    if (mode === "preview") return;
+    const previous = document.title;
+    document.title = `${shop.shopName} · ${shop.business}`;
+    return () => {
+      document.title = previous;
+    };
+  }, [mode, shop.business, shop.shopName]);
+
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
 

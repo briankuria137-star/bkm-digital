@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import PublicStatus from "../../../components/PublicStatus";
 import PublicShopView from "../../../components/PublicShopView";
-import { readError } from "../../../lib/catalogue";
+import { publicError } from "../../../lib/catalogue";
 import { loadStudioDocument, normalizeShop, type ShopPayload } from "../../../lib/studio";
 
 export default function PublicShopPage({
@@ -24,7 +25,7 @@ export default function PublicShopPage({
         if (document.kind !== "shop") throw new Error("This shop was not found.");
         if (!cancelled) setShop(normalizeShop(document.payload));
       } catch (err) {
-        if (!cancelled) setError(readError(err));
+        if (!cancelled) setError(publicError(err));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -47,11 +48,11 @@ export default function PublicShopPage({
   if (error || !shop) {
     return (
       <main className="public-shop">
-        <div className="public-catalogue-error">
-          <p>SHOP</p>
-          <h1>Shop not found.</h1>
-          <span>{error || "This shop does not exist."}</span>
-        </div>
+        <PublicStatus
+          eyebrow="SHOP"
+          title="Shop not found."
+          detail={error || "This shop does not exist."}
+        />
       </main>
     );
   }

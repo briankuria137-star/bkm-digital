@@ -32,6 +32,15 @@ export default function PublicCatalogueView({
   mode = "live",
   shareUrl = "",
 }: PublicCatalogueViewProps) {
+  useEffect(() => {
+    if (mode === "preview") return;
+    const previous = document.title;
+    document.title = `${catalogue.name} · ${catalogue.business_name}`;
+    return () => {
+      document.title = previous;
+    };
+  }, [catalogue.business_name, catalogue.name, mode]);
+
   const [copied, setCopied] = useState(false);
   const [notice, setNotice] = useState("");
   const [activeImages, setActiveImages] = useState<Record<string, number>>({});

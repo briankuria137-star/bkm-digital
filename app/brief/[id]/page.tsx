@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import PublicBriefView from "../../../components/PublicBriefView";
-import { readError } from "../../../lib/catalogue";
+import PublicStatus from "../../../components/PublicStatus";
+import { publicError } from "../../../lib/catalogue";
 import {
   loadStudioDocument,
   normalizeSoftware,
@@ -28,7 +29,7 @@ export default function PublicBriefPage({
         if (document.kind !== "software") throw new Error("This brief was not found.");
         if (!cancelled) setBrief(normalizeSoftware(document.payload));
       } catch (err) {
-        if (!cancelled) setError(readError(err));
+        if (!cancelled) setError(publicError(err));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -51,11 +52,11 @@ export default function PublicBriefPage({
   if (error || !brief) {
     return (
       <main className="public-brief-page">
-        <div className="public-catalogue-error">
-          <p>SOFTWARE</p>
-          <h1>Brief not found.</h1>
-          <span>{error || "This brief does not exist."}</span>
-        </div>
+        <PublicStatus
+          eyebrow="SOFTWARE"
+          title="Brief not found."
+          detail={error || "This brief does not exist."}
+        />
       </main>
     );
   }

@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import PublicCatalogueView from "../../../components/PublicCatalogueView";
+import PublicStatus from "../../../components/PublicStatus";
 import {
   defaultDesign,
   fetchCatalogue,
   fetchProductGalleries,
-  readError,
+  publicError,
   type CatalogueDesign,
   type CatalogueRecord,
 } from "../../../lib/catalogue";
@@ -88,7 +89,7 @@ export default function PublicCatalogue({
       } catch (err) {
         if (cancelled) return;
         console.error("Catalogue loading error:", err);
-        setError(readError(err));
+        setError(publicError(err));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -112,11 +113,11 @@ export default function PublicCatalogue({
   if (error || !catalogue) {
     return (
       <main className="public-catalogue">
-        <div className="public-catalogue-error">
-          <p>CATALOGUE</p>
-          <h1>Catalogue not found.</h1>
-          <span>{error || "This catalogue does not exist."}</span>
-        </div>
+        <PublicStatus
+          eyebrow="CATALOGUE"
+          title="Catalogue not found."
+          detail={error || "This catalogue does not exist."}
+        />
       </main>
     );
   }

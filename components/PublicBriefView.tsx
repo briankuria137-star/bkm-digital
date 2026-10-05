@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect } from "react";
 import type { SoftwarePayload } from "../lib/studio";
 
 export default function PublicBriefView({
@@ -7,6 +10,15 @@ export default function PublicBriefView({
   brief: SoftwarePayload;
   mode?: "live" | "preview";
 }) {
+  useEffect(() => {
+    if (mode === "preview") return;
+    const previous = document.title;
+    document.title = `${brief.productName} · ${brief.business}`;
+    return () => {
+      document.title = previous;
+    };
+  }, [brief.business, brief.productName, mode]);
+
   return (
     <article className={`software-brief public-brief ${mode === "preview" ? "is-preview" : ""}`}>
       <p>{brief.business}</p>
