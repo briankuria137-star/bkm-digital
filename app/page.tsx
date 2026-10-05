@@ -6,24 +6,28 @@ const services = [
     title: "Digital Catalogues",
     description:
       "Turn your products into a clean, shareable catalogue designed for customers.",
+    href: "/catalogue",
   },
   {
     number: "02",
     title: "Business Websites",
     description:
       "Professional websites that give your business a real digital home.",
+    href: "/website",
   },
   {
     number: "03",
     title: "Online Shops",
     description:
       "Bring your products online and make it easier for customers to discover and order.",
+    href: "/shop",
   },
   {
     number: "04",
     title: "Business Software",
     description:
       "Custom digital tools built around the way your business actually works.",
+    href: "/software",
   },
 ];
 
@@ -58,7 +62,7 @@ export default function Home() {
 
           <p className="hero-description">
             BKM DIGITAL creates practical digital products that help businesses
-            look better, sell better and work smarter.
+            look better, sell better, and work smarter.
           </p>
 
           <div className="hero-actions">
@@ -84,7 +88,7 @@ export default function Home() {
 
         <div className="services-grid">
           {services.map((service) => (
-            <Link href={service.number === "01" ? "/catalogue" : service.number === "02" ? "/website" : "/shop"} className="service-card" key={service.number}>
+            <Link href={service.href} className="service-card" key={service.number}>
               <span className="service-number">{service.number}</span>
               <h3>{service.title}</h3>
               <p>{service.description}</p>

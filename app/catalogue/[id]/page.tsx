@@ -1,19 +1,22 @@
 "use client";
 
-import Image from "next/image";
-
 import { ChangeEvent, useEffect, useState } from "react";
 import Link from "next/link";
+import CatalogueDesignControls from "../../../components/CatalogueDesignControls";
+import ProductGallery from "../../../components/ProductGallery";
+import PublicCatalogueView from "../../../components/PublicCatalogueView";
+import {
+  defaultDesign,
+  fetchCatalogue,
+  fetchProductGalleries,
+  markProjectPublished,
+  readError,
+  replaceCatalogueProducts,
+  updateCatalogue,
+  type CatalogueDesign,
+  type DraftProduct,
+} from "../../../lib/catalogue";
 import { supabase } from "../../../lib/supabase";
-
-type Product = {
-  id: number;
-  name: string;
-  price: string;
-  description: string;
-  image: string;
-  images: string[];
-};
 
 export default function EditCatalogue({
   params,
@@ -23,75 +26,113 @@ export default function EditCatalogue({
   const [catalogueId, setCatalogueId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [business, setBusiness] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
+  const [whatsapp, setWhatsapp] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [facebook, setFacebook] = useState("");
+  const [tiktok, setTiktok] = useState("");
+  const [website, setWebsite] = useState("");
+  const [location, setLocation] = useState("");
+  const [design, setDesign] = useState<CatalogueDesign>(defaultDesign);
+  const [products, setProducts] = useState<DraftProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploadingProductId, setUploadingProductId] = useState<number | null>(
-    null,
-  );
+  const [uploadingProductId, setUploadingProductId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
+  const [messageTone, setMessageTone] = useState<"success" | "error">("success");
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadCatalogue() {
       try {
         const { id } = await params;
-        const catalogueUuid = id;
-        if (!catalogueUuid) {
-          throw new Error("Invalid catalogue ID.");
-        }
+        if (!id) throw new Error("Invalid catalogue ID.");
 
-        const { data: catalogue, error: catalogueError } = await supabase
-          .from("catalogues")
-          .select("id, name, business_name")
-          .eq("id", catalogueUuid)
-          .single();
+        const catalogue = await fetchCatalogue(id);
 
-        if (catalogueError) {
-          throw catalogueError;
-        }
-
-        const { data: productData, error: productError } = await supabase
+        const withImages = await supabase
           .from("catalogue_products")
           .select("id, name, price, description, image, images")
-          .eq("catalogue_id", catalogueUuid)
+          .eq("catalogue_id", id)
           .order("id", { ascending: true });
 
-        if (productError) {
-          throw productError;
-        }
+        const productResult = withImages.error
+          ? await supabase
+              .from("catalogue_products")
+              .select("id, name, price, description, image")
+              .eq("catalogue_id", id)
+              .order("id", { ascending: true })
+          : withImages;
+
+        if (productResult.error) throw productResult.error;
+
+        const rows = productResult.data || [];
+        const galleries = await fetchProductGalleries(rows.map((product) => product.id));
+
+        if (cancelled) return;
 
         setCatalogueId(catalogue.id);
         setName(catalogue.name);
         setBusiness(catalogue.business_name);
+        setWhatsapp(catalogue.whatsapp || "");
+        setPhone(catalogue.phone || "");
+        setEmail(catalogue.email || "");
+        setInstagram(catalogue.instagram || "");
+        setFacebook(catalogue.facebook || "");
+        setTiktok(catalogue.tiktok || "");
+        setWebsite(catalogue.website || "");
+        setLocation(catalogue.location || "");
+        setDesign(catalogue.design);
         setProducts(
-          (productData || []).map((product) => ({
-            ...product,
-            images:
-              Array.isArray(product.images) && product.images.length > 0
-                ? product.images
+          rows.map((product) => {
+            const storedImages = Array.isArray(
+              (product as unknown as { images?: unknown }).images,
+            )
+              ? ((product as unknown as { images: unknown[] }).images || []).filter(
+                  (image): image is string => typeof image === "string" && image.length > 0,
+                )
+              : [];
+            const galleryImages = galleries?.[String(product.id)] || [];
+            const images = galleryImages.length
+              ? galleryImages
+              : storedImages.length
+                ? storedImages
                 : product.image
                   ? [product.image]
-                  : [],
-          })),
+                  : [];
+
+            return {
+              id: Number(product.id),
+              name: product.name || "",
+              price: product.price || "",
+              description: product.description || "",
+              image: images[0] || "",
+              images,
+            };
+          }),
         );
       } catch (error) {
+        if (cancelled) return;
         console.error("Edit catalogue loading error:", error);
-        setMessage(
-          error instanceof Error ? error.message : "Unable to load catalogue.",
-        );
+        setMessageTone("error");
+        setMessage(readError(error));
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     loadCatalogue();
+
+    return () => {
+      cancelled = true;
+    };
   }, [params]);
 
   function addProduct() {
     const nextId =
-      products.length > 0
-        ? Math.max(...products.map((product) => product.id)) + 1
-        : 1;
+      products.length > 0 ? Math.max(...products.map((product) => product.id)) + 1 : 1;
 
     setProducts([
       ...products,
@@ -99,7 +140,7 @@ export default function EditCatalogue({
         id: nextId,
         name: `Product ${nextId}`,
         price: "KSh 0",
-        description: "Add a description for this product.",
+        description: "Add a short description for this product.",
         image: "",
         images: [],
       },
@@ -110,7 +151,7 @@ export default function EditCatalogue({
     setProducts(products.filter((product) => product.id !== id));
   }
 
-  function updateProduct(id: number, field: keyof Product, value: string) {
+  function updateProduct(id: number, field: keyof DraftProduct, value: string) {
     setProducts((currentProducts) =>
       currentProducts.map((product) =>
         product.id === id ? { ...product, [field]: value } : product,
@@ -118,12 +159,16 @@ export default function EditCatalogue({
     );
   }
 
-  async function handleImageUpload(
-    id: number,
-    event: ChangeEvent<HTMLInputElement>,
-  ) {
-    const files = Array.from(event.target.files || []);
+  function setProductImages(id: number, images: string[]) {
+    setProducts((currentProducts) =>
+      currentProducts.map((product) =>
+        product.id === id ? { ...product, images, image: images[0] || "" } : product,
+      ),
+    );
+  }
 
+  async function handleImageUpload(id: number, event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
 
     const product = products.find((item) => item.id === id);
@@ -137,7 +182,8 @@ export default function EditCatalogue({
     const remainingSlots = 5 - currentImages.length;
 
     if (remainingSlots <= 0) {
-      alert("This product already has the maximum of 5 photos.");
+      setMessageTone("error");
+      setMessage("This product already has 5 photos.");
       event.target.value = "";
       return;
     }
@@ -145,20 +191,23 @@ export default function EditCatalogue({
     const selectedFiles = files.slice(0, remainingSlots);
 
     if (files.length > remainingSlots) {
-      alert(
-        `Only ${remainingSlots} more photo${remainingSlots === 1 ? "" : "s"} can be added. Maximum is 5 photos.`,
+      setMessageTone("error");
+      setMessage(
+        `Only ${remainingSlots} more photo${remainingSlots === 1 ? "" : "s"} can be added.`,
       );
     }
 
     for (const file of selectedFiles) {
       if (!file.type.startsWith("image/")) {
-        alert(`"${file.name}" is not a valid image file.`);
+        setMessageTone("error");
+        setMessage(`"${file.name}" is not an image.`);
         event.target.value = "";
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        alert(`"${file.name}" is larger than 5MB.`);
+        setMessageTone("error");
+        setMessage(`"${file.name}" is larger than 5MB.`);
         event.target.value = "";
         return;
       }
@@ -171,50 +220,25 @@ export default function EditCatalogue({
 
       for (const file of selectedFiles) {
         const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+        const fileName = `${id}-${crypto.randomUUID()}.${extension}`;
 
-        const fileName =
-          String(id) + "-" + crypto.randomUUID() + "." + extension;
+        const { error } = await supabase.storage.from("catalogue-images").upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type,
+        });
 
-        const { error } = await supabase.storage
-          .from("catalogue-images")
-          .upload(fileName, file, {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: file.type,
-          });
+        if (error) throw error;
 
-        if (error) {
-          throw error;
-        }
-
-        const { data } = supabase.storage
-          .from("catalogue-images")
-          .getPublicUrl(fileName);
-
+        const { data } = supabase.storage.from("catalogue-images").getPublicUrl(fileName);
         uploadedUrls.push(data.publicUrl);
       }
 
-      setProducts((currentProducts) =>
-        currentProducts.map((item) => {
-          if (item.id !== id) return item;
-
-          const images = [...(item.images || []), ...uploadedUrls];
-
-          return {
-            ...item,
-            images,
-            image: images[0] || "",
-          };
-        }),
-      );
+      setProductImages(id, [...currentImages, ...uploadedUrls]);
     } catch (error) {
       console.error("Image upload error:", error);
-
-      alert(
-        error instanceof Error
-          ? "Upload failed: " + error.message
-          : "Upload failed. Please try again.",
-      );
+      setMessageTone("error");
+      setMessage(`Upload failed: ${readError(error)}`);
     } finally {
       setUploadingProductId(null);
       event.target.value = "";
@@ -223,76 +247,60 @@ export default function EditCatalogue({
 
   async function saveChanges() {
     if (!catalogueId) {
-      setMessage("Catalogue is not ready.");
+      setMessageTone("error");
+      setMessage("This catalogue is not ready to save.");
       return;
     }
 
-    if (!name.trim()) {
-      alert("Please enter a catalogue name.");
-      return;
-    }
-
-    if (!business.trim()) {
-      alert("Please enter a business name.");
+    if (!name.trim() || !business.trim()) {
+      setMessageTone("error");
+      setMessage("Catalogue name and business name are required.");
       return;
     }
 
     if (products.length === 0) {
-      alert("Add at least one product before saving.");
+      setMessageTone("error");
+      setMessage("Add at least one product before saving.");
       return;
     }
 
     setSaving(true);
-    setMessage("");
+    setMessage("Saving changes...");
+    setMessageTone("success");
 
     try {
-      const { error: catalogueError } = await supabase
-        .from("catalogues")
-        .update({
-          name: name.trim(),
-          business_name: business.trim(),
-        })
-        .eq("id", catalogueId);
+      const updated = await updateCatalogue(
+        catalogueId,
+        {
+          name,
+          business,
+          whatsapp,
+          phone,
+          email,
+          instagram,
+          facebook,
+          tiktok,
+          website,
+          location,
+        },
+        design,
+      );
 
-      if (catalogueError) {
-        throw catalogueError;
+      const galleryWarning = await replaceCatalogueProducts(catalogueId, products);
+      await markProjectPublished(catalogueId);
+
+      if (galleryWarning) {
+        setMessageTone("error");
+        setMessage(galleryWarning);
+      } else if (!updated.designSaved) {
+        setMessage("Changes saved. Design settings need the database update before they publish.");
+      } else {
+        setMessage("Changes saved.");
       }
-
-      const { error: deleteError } = await supabase
-        .from("catalogue_products")
-        .delete()
-        .eq("catalogue_id", catalogueId);
-
-      if (deleteError) {
-        throw deleteError;
-      }
-
-      const productRows = products.map((product) => ({
-        catalogue_id: catalogueId,
-        name: product.name.trim(),
-        price: product.price.trim(),
-        description: product.description.trim(),
-        image: product.images?.[0] || product.image || null,
-        images: product.images || [],
-      }));
-
-      const { error: productError } = await supabase
-        .from("catalogue_products")
-        .insert(productRows);
-
-      if (productError) {
-        throw productError;
-      }
-
-      setMessage("Catalogue updated successfully.");
     } catch (error) {
       console.error("Catalogue update error:", error);
-
-      setMessage(
-        `Update failed: ${
-          error instanceof Error ? error.message : "Something went wrong."
-        }`,
-      );
+      setMessageTone("error");
+      setMessage(`Update failed: ${readError(error)}`);
     } finally {
       setSaving(false);
     }
@@ -310,13 +318,29 @@ export default function EditCatalogue({
     return (
       <main className="catalogue-builder">
         <div className="public-catalogue-error">
+          <p>CATALOGUE</p>
           <h1>Catalogue not found.</h1>
-          <p>{message}</p>
-          <Link href="/projects">← Back to projects</Link>
+          <span>{message || "This catalogue does not exist."}</span>
+          <Link href="/dashboard" className="primary-button quiet-link">
+            Back to workspace
+          </Link>
         </div>
       </main>
     );
   }
+
+  const previewCatalogue = {
+    name: name || "Untitled catalogue",
+    business_name: business || "Your business",
+    whatsapp: whatsapp || null,
+    phone: phone || null,
+    email: email || null,
+    instagram: instagram || null,
+    facebook: facebook || null,
+    tiktok: tiktok || null,
+    website: website || null,
+    location: location || null,
+  };
 
   return (
     <main className="catalogue-builder">
@@ -328,13 +352,14 @@ export default function EditCatalogue({
         <div className="builder-label">EDIT CATALOGUE</div>
 
         <nav className="builder-nav">
-          <a href="#details">01&nbsp;&nbsp; Details</a>
-          <a href="#products">02&nbsp;&nbsp; Products</a>
-          <a href="#preview">03&nbsp;&nbsp; Preview</a>
+          <a href="#details">01 Details</a>
+          <a href="#products">02 Products</a>
+          <a href="#design">03 Design</a>
+          <a href="#preview">04 Preview</a>
         </nav>
 
         <div className="builder-sidebar-bottom">
-          <Link href="/projects">← Back to projects</Link>
+          <Link href="/dashboard">Back to workspace</Link>
         </div>
       </aside>
 
@@ -345,21 +370,39 @@ export default function EditCatalogue({
             <h1>Edit your catalogue.</h1>
           </div>
 
-          <button
-            className="publish-button"
-            type="button"
-            onClick={saveChanges}
-            disabled={saving}
-          >
-            {saving ? "Saving..." : "Save Changes →"}
-          </button>
+          <div className="builder-header-actions">
+            <Link
+              href={`/c/${catalogueId}`}
+              className="secondary-button header-link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View live
+            </Link>
+            <button
+              className="publish-button"
+              type="button"
+              onClick={saveChanges}
+              disabled={saving}
+            >
+              {saving ? "Saving..." : "Save changes"}
+            </button>
+          </div>
         </header>
 
-        {message && (
-          <div className="catalogue-save-message" role="status">
-            {message}
+        {message ? (
+          <div
+            className={`catalogue-save-message ${messageTone === "error" ? "is-error" : ""}`}
+            role="status"
+          >
+            <span>{message}</span>
+            {messageTone === "success" ? (
+              <Link href={`/c/${catalogueId}`} target="_blank" rel="noopener noreferrer">
+                Open public catalogue
+              </Link>
+            ) : null}
           </div>
-        )}
+        ) : null}
 
         <section id="details" className="builder-section-panel">
           <p className="panel-number">01 / DETAILS</p>
@@ -368,19 +411,82 @@ export default function EditCatalogue({
           <div className="details-grid">
             <label>
               Catalogue name
-              <input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
+              <input value={name} onChange={(event) => setName(event.target.value)} />
             </label>
-
             <label>
               Business name
-              <input
-                value={business}
-                onChange={(event) => setBusiness(event.target.value)}
-              />
+              <input value={business} onChange={(event) => setBusiness(event.target.value)} />
             </label>
+          </div>
+
+          <div className="contact-fields">
+            <p className="panel-number">CONTACT & SOCIAL</p>
+            <div className="details-grid">
+              <label>
+                WhatsApp
+                <input
+                  value={whatsapp}
+                  onChange={(event) => setWhatsapp(event.target.value)}
+                  placeholder="+254 7XX XXX XXX"
+                />
+              </label>
+              <label>
+                Phone
+                <input
+                  value={phone}
+                  onChange={(event) => setPhone(event.target.value)}
+                  placeholder="+254 7XX XXX XXX"
+                />
+              </label>
+              <label>
+                Email
+                <input
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="hello@yourbusiness.com"
+                />
+              </label>
+              <label>
+                Instagram
+                <input
+                  value={instagram}
+                  onChange={(event) => setInstagram(event.target.value)}
+                  placeholder="@yourbusiness"
+                />
+              </label>
+              <label>
+                Facebook
+                <input
+                  value={facebook}
+                  onChange={(event) => setFacebook(event.target.value)}
+                  placeholder="facebook.com/yourbusiness"
+                />
+              </label>
+              <label>
+                TikTok
+                <input
+                  value={tiktok}
+                  onChange={(event) => setTiktok(event.target.value)}
+                  placeholder="@yourbusiness"
+                />
+              </label>
+              <label>
+                Website
+                <input
+                  value={website}
+                  onChange={(event) => setWebsite(event.target.value)}
+                  placeholder="https://yourwebsite.com"
+                />
+              </label>
+              <label>
+                Location
+                <input
+                  value={location}
+                  onChange={(event) => setLocation(event.target.value)}
+                  placeholder="Mwihoko, Ruiru"
+                />
+              </label>
+            </div>
           </div>
         </section>
 
@@ -390,13 +496,8 @@ export default function EditCatalogue({
               <p className="panel-number">02 / PRODUCTS</p>
               <h2>Your products.</h2>
             </div>
-
-            <button
-              className="add-product-button"
-              type="button"
-              onClick={addProduct}
-            >
-              + Add product
+            <button className="add-product-button" type="button" onClick={addProduct}>
+              Add product
             </button>
           </div>
 
@@ -406,176 +507,48 @@ export default function EditCatalogue({
                 <span className="product-index">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-
                 <div className="product-fields">
                   <div className="image-upload-area">
-                    {product.images && product.images.length > 0 ? (
-                      <>
-                        <div className="product-gallery-main">
-                          <Image
-                            src={product.images[0]}
-                            unoptimized
-                            alt={product.name || "Product image"}
-                            width={800}
-                            height={800}
-                            className="uploaded-product-image"
-                          />
-                          <span className="primary-image-badge">PRIMARY</span>
-                        </div>
-
-                        <div className="product-gallery-thumbnails">
-                          {product.images.map((image, imageIndex) => (
-                            <div
-                              className={`product-gallery-thumbnail ${imageIndex === 0 ? "active" : ""}`}
-                              key={`${image}-${imageIndex}`}
-                            >
-                              <button
-                                type="button"
-                                className="thumbnail-select"
-                                onClick={() => {
-                                  if (imageIndex === 0) return;
-
-                                  setProducts((currentProducts) =>
-                                    currentProducts.map((item) => {
-                                      if (item.id !== product.id) return item;
-
-                                      const images = [...item.images];
-                                      const [selectedImage] = images.splice(
-                                        imageIndex,
-                                        1,
-                                      );
-
-                                      return {
-                                        ...item,
-                                        images: [selectedImage, ...images],
-                                        image: selectedImage || "",
-                                      };
-                                    }),
-                                  );
-                                }}
-                              >
-                                <Image
-                                  src={image}
-                                  unoptimized
-                                  alt={`${product.name || "Product"} image ${imageIndex + 1}`}
-                                  width={160}
-                                  height={160}
-                                />
-                              </button>
-
-                              <button
-                                type="button"
-                                className="thumbnail-remove"
-                                onClick={() => {
-                                  setProducts((currentProducts) =>
-                                    currentProducts.map((item) => {
-                                      if (item.id !== product.id) return item;
-
-                                      const images = item.images.filter(
-                                        (_, index) => index !== imageIndex,
-                                      );
-
-                                      return {
-                                        ...item,
-                                        images,
-                                        image: images[0] || "",
-                                      };
-                                    }),
-                                  );
-                                }}
-                                aria-label={`Remove image ${imageIndex + 1}`}
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="gallery-upload-footer">
-                          <span>{product.images.length}/5 photos</span>
-
-                          {product.images.length < 5 && (
-                            <label className="gallery-add-button">
-                              {uploadingProductId === product.id
-                                ? "Uploading..."
-                                : "+ Add photos"}
-
-                              <input
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                disabled={uploadingProductId === product.id}
-                                onChange={(event) =>
-                                  handleImageUpload(product.id, event)
-                                }
-                              />
-                            </label>
-                          )}
-                        </div>
-                      </>
-                    ) : (
-                      <label className="upload-box">
-                        <span>
-                          {uploadingProductId === product.id ? "…" : "+"}
-                        </span>
-
-                        <strong>
-                          {uploadingProductId === product.id
-                            ? "Uploading…"
-                            : "Upload product images"}
-                        </strong>
-
-                        <small>
-                          {uploadingProductId === product.id
-                            ? "Please wait while the images upload."
-                            : "JPG, PNG or WEBP · Max 5MB each · Up to 5 photos"}
-                        </small>
-
-                        <input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          disabled={uploadingProductId === product.id}
-                          onChange={(event) =>
-                            handleImageUpload(product.id, event)
-                          }
-                        />
-                      </label>
-                    )}
+                    <ProductGallery
+                      name={product.name}
+                      images={product.images}
+                      uploading={uploadingProductId === product.id}
+                      onUpload={(event) => handleImageUpload(product.id, event)}
+                      onMakePrimary={(imageIndex) => {
+                        if (imageIndex === 0) return;
+                        const images = [...product.images];
+                        const [selectedImage] = images.splice(imageIndex, 1);
+                        setProductImages(product.id, [selectedImage, ...images]);
+                      }}
+                      onRemoveImage={(imageIndex) => {
+                        setProductImages(
+                          product.id,
+                          product.images.filter((_, current) => current !== imageIndex),
+                        );
+                      }}
+                    />
                   </div>
-
                   <input
                     value={product.name}
-                    onChange={(event) =>
-                      updateProduct(product.id, "name", event.target.value)
-                    }
+                    onChange={(event) => updateProduct(product.id, "name", event.target.value)}
                     aria-label="Product name"
                     placeholder="Product name"
                   />
-
                   <input
                     value={product.price}
-                    onChange={(event) =>
-                      updateProduct(product.id, "price", event.target.value)
-                    }
+                    onChange={(event) => updateProduct(product.id, "price", event.target.value)}
                     aria-label="Product price"
                     placeholder="Price"
                   />
-
                   <textarea
                     value={product.description}
                     onChange={(event) =>
-                      updateProduct(
-                        product.id,
-                        "description",
-                        event.target.value,
-                      )
+                      updateProduct(product.id, "description", event.target.value)
                     }
                     aria-label="Product description"
                     placeholder="Product description"
                   />
                 </div>
-
                 <button
                   type="button"
                   className="remove-product"
@@ -588,40 +561,36 @@ export default function EditCatalogue({
           </div>
         </section>
 
+        <section id="design" className="builder-section-panel">
+          <p className="panel-number">03 / DESIGN</p>
+          <h2>Keep it unmistakably yours.</h2>
+          <p className="panel-intro">
+            Style changes appear in the preview and on the public catalogue after you save.
+          </p>
+          <CatalogueDesignControls design={design} onChange={setDesign} />
+        </section>
+
         <section id="preview" className="builder-section-panel preview-panel">
-          <p className="panel-number">03 / PREVIEW</p>
-
-          <div className="catalogue-preview">
-            <p>{business}</p>
-            <h2>{name}</h2>
-
-            <div className="preview-grid">
-              {products.map((product) => (
-                <div className="preview-product" key={product.id}>
-                  {product.image ? (
-                    <Image
-                      className="preview-product-image"
-                      src={product.image}
-                      alt={product.name}
-                      width={800}
-                      height={800}
-                    />
-                  ) : (
-                    <div className="preview-image">PRODUCT</div>
-                  )}
-
-                  <h3>{product.name}</h3>
-                  <strong>{product.price}</strong>
-                  <p>{product.description}</p>
-                </div>
-              ))}
-            </div>
+          <p className="panel-number">04 / PREVIEW</p>
+          <h2>This is what customers see.</h2>
+          <div className="catalogue-preview-frame">
+            <PublicCatalogueView
+              catalogue={previewCatalogue}
+              products={products.map((product) => ({
+                id: String(product.id),
+                name: product.name,
+                price: product.price,
+                description: product.description,
+                images: product.images,
+              }))}
+              design={design}
+              mode="preview"
+              shareUrl={`/c/${catalogueId}`}
+            />
           </div>
         </section>
 
-        <footer className="builder-footer">
-          BKM DIGITAL / CATALOGUE EDITOR v1
-        </footer>
+        <footer className="builder-footer">BKM DIGITAL / CATALOGUE EDITOR</footer>
       </section>
     </main>
   );
